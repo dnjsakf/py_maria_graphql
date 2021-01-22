@@ -1,62 +1,24 @@
 import graphene
-import mariadb
+from graphene_sqlalchemy import SQLAlchemyObjectType
 
-from app.models import EmpModel
+from app.database.session import session
+from app.models.scott import EmpModel
 
-conn = mariadb.connect(
-  host="127.0.0.1",
-  port=3306,
-  database="SCOTT",
-  user="dochi",
-  password="dochi"
-)
+from graphql_relay.node.node import from_global_id
 
-emp = EmpModel(empno=10)
-print( EmpModel.query )
+# https://medium.com/swlh/python-flask-with-graphql-server-with-sqlalchemy-and-graphene-and-sqlite-ac9fcc9d3d83
 
-def getEmp(empno):
-  cursor = conn.cursor(dictionary=True)
-  cursor.execute('''
-    SELECT *
-      FROM SCOTT.EMP
-     WHERE 1=1
-       AND EMPNO = ?
-  ''', (empno, ))
-  record = cursor.fetchone()
-  cursor.close()
+def input_to_dictionary(input):
+  """Method to convert Graphene inputs into dictionary"""
+  dictionary = {}
+  for key in input:
+    # Convert GraphQL global id to database id
+    if key[-2:] == 'id':
+      input[key] = from_global_id(input[key])[1]
+    dictionary[key] = input[key]
+  return dictionary
 
-  return EmpType(
-    empno=record.get("EMPNO"),
-    ename=record.get("ENAME"),
-    job=record.get("JOB"),
-    mgr=record.get("MGR"),
-    hiredate=record.get("HIREDATE"),
-    sal=record.get("SAL"),
-    comm=record.get("COMM"),
-    deptno=record.get("DEPTNO"),
-  )
 
-def getEmpList():
-  cursor = conn.cursor(dictionary=True)
-  cursor.execute('''
-    SELECT *
-      FROM SCOTT.EMP
-     WHERE 1=1
-  ''')
-  records = cursor.fetchall()
-  cursor.close()
-
-  return [EmpType(
-    empno=record.get("EMPNO"),
-    ename=record.get("ENAME"),
-    job=record.get("JOB"),
-    mgr=record.get("MGR"),
-    hiredate=record.get("HIREDATE"),
-    sal=record.get("SAL"),
-    comm=record.get("COMM"),
-    deptno=record.get("DEPTNO"),
-  ) for record in records]
-  
 class EmpNode(graphene.relay.Node):
   class Meta:
     name = 'EmpNode'
@@ -67,9 +29,7 @@ class EmpNode(graphene.relay.Node):
 
   @staticmethod
   def get_node_from_global_id(info, global_id, only_type=None):
-    '''
-      called: EmpNode.Field()
-    '''
+    print( global_id )
     type_, empno = global_id.split(':')
     if only_type:
       assert type_ == only_type._meta.name, 'Received not compatible node.'
@@ -77,18 +37,10 @@ class EmpNode(graphene.relay.Node):
     if type_ == 'EmpType':
       return getEmp(empno)
 
-class EmpType(graphene.ObjectType):
+class EmpType(SQLAlchemyObjectType):
   class Meta:
+    model = EmpModel
     interfaces = (EmpNode, )
-    
-  empno = graphene.Int()
-  ename = graphene.String()
-  job = graphene.String()
-  mgr = graphene.String()
-  hiredate = graphene.String()
-  sal = graphene.Int()
-  comm = graphene.Int()
-  deptno = graphene.Int()
   
 class EmpConnection(graphene.relay.Connection):
   class Meta:
@@ -110,27 +62,57 @@ class EmpConnection(graphene.relay.Connection):
 class EmpQuery(graphene.ObjectType):
   emp = graphene.Field(
     EmpType,
-    empno=graphene.Int(required=True),
-    resolver=lambda parent,info,empno: getEmp(empno)
+    empno=graphene.Int(required=True), # Arguments
+    # resolver=lambda parent,info,empno: EmpModel.query.filter_by(empno=empno).first()
+    resolver=lambda parent,info,empno: EmpType.get_query(info).filter_by(empno=empno).first()
   )
   empList = graphene.List(
     EmpType,
-    resolver=lambda parent,info: getEmpList()
+    # resolver=lambda parent,info: EmpModel.query.all()
+    resolver=lambda parent,info: EmpType.get_query(info).all()
   )
   emps = graphene.relay.ConnectionField(EmpConnection)
     
   def resolve_emps(self, info, **args):
-    return getEmpList()
+    return EmpModel.query.all()
   
-  @classmethod
-  def get_node(cls, info, id):
-    print( cls, info, id )
-    return getEmp(id)
-
 class Query(EmpQuery, graphene.ObjectType):
   pass
+
+class CreateEmpInput(graphene.InputObjectType):
+  empno     = graphene.Int(required=True)
+  ename     = graphene.String()
+  job       = graphene.String()
+  mgr       = graphene.Int()
+  hiredate  = graphene.String()
+  sal       = graphene.Int()
+  comm      = graphene.Int()
+  deptno    = graphene.Int(required=True)
+
+class CreateEmp(graphene.Mutation):
+  class Arguments:
+    input = CreateEmpInput(required=True)
+
+  emp = graphene.Field(lambda: EmpType)
+  ok = graphene.Boolean()
+
+  @staticmethod
+  def mutate(self, info, input):
+    data = input_to_dictionary(input)
+    emp = EmpModel(**data)
+    session.add(emp)
+    session.commit()
+    ok = True
+    return CreateEmp(emp=emp, ok=ok)
+
+class Mutation(graphene.ObjectType):
+  createEmp = CreateEmp.Field()
     
 # Schema 생성
 schema = graphene.Schema(
-  query=Query
+  query=Query,
+  mutation=Mutation,
+  types=[
+    EmpType
+  ]
 )

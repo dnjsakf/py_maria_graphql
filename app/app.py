@@ -5,6 +5,9 @@ from flask import Flask
 from flask_cors import CORS
 from flask_graphql import GraphQLView
 
+from app.database import init_db
+from app.routes import init_route
+
 APP_PATH = os.path.abspath(os.path.dirname(__file__))
 
 def create_app():
@@ -29,9 +32,14 @@ def create_app():
   if not SECRET_KEY:
     raise ValueError("No SECRET_KEY set for Flask application")
   app.config["SECRET_KEY"] = SECRET_KEY
+
+  # Set Database
+  init_db()
   
   with app.app_context():
     handle_middleware()
+
+    init_route()
     
   return app
 

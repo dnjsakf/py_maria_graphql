@@ -1,18 +1,27 @@
-from flask import current_app as app
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine
+from sqlalchemy import Column, String, Integer, ForeignKey
+from ..database.base import Base
 
-db = SQLAlchemy(app)
+class DeptModel(Base):
+  __tablename__ = "dept"
 
-class EmpModel(db.Model):
-  empno     = db.Column(db.Integer, primary_key=True)
-  ename     = db.Column(db.String(10))
-  job       = db.Column(db.String(9))
-  mgr       = db.Column(db.Integer)
-  hiredate  = db.Column(db.String(12))
-  sal       = db.Column(db.Integer)
-  comm      = db.Column(db.Integer)
-  deptno    = db.Column(db.Integer)
+  deptno = Column(Integer, primary_key=True)
+  dname = Column(String(14))
+  location = Column(String(13))
+  
+  def __repr__(self):
+    return '<DeptModel %r>' % self.deptno
+
+class EmpModel(Base):
+  __tablename__ = "emp"
+
+  empno     = Column(Integer, primary_key=True)
+  ename     = Column(String(10))
+  job       = Column(String(9))
+  mgr       = Column(Integer)
+  hiredate  = Column(String(12))
+  sal       = Column(Integer)
+  comm      = Column(Integer)
+  deptno    = Column(Integer, ForeignKey('dept.deptno'))
   
   def __repr__(self):
     return '<EmpModel %r>' % self.empno

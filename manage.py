@@ -11,7 +11,7 @@ manager = Manager(app)
 @manager.option('-n', '--name', help='Your name')
 def run(name=None):
   #dev_server_config = app.config.get_namespace("DEV_SERVER_")
-  app.run(port=3000)
+  app.run(host="0.0.0.0", port=3000)
 
 if __name__ == '__main__':
   manager.run()

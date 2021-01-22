@@ -87,6 +87,24 @@ class TestGraphQL(object):
     pprint( dict(result.to_dict()), indent=2 )
     pprint( result.errors, indent=2 )
     pprint( result.invalid, indent=2 )
+
+  def test_case_4(self):
+    ''' Mutation - CreateEmp '''
+    result = schema.execute('''
+      mutation CreateEmp {
+        createEmp (
+          input: {
+            empno: 9998
+            deptno: 10 
+          }
+        ) {
+          emp {
+            id
+          }
+          
+        }
+      }
+    ''')
     
 # 테스트실행
 TestGraphQL()
