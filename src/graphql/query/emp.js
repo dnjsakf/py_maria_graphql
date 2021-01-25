@@ -12,10 +12,7 @@ export const EMP_QUERY = gql(`
       empno
       ename
     }
-    emps (
-        after: "YXJyYXljb25uZWN0aW9uOjM="
-        last: 5
-      ) {
+    emps {
       pageInfo {
         hasNextPage
         hasPreviousPage

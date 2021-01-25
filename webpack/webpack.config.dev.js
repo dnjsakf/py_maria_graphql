@@ -1,10 +1,17 @@
 const config = require("./webpack.config.js");
+const webpack = require("webpack");
+const CopyPlugin = require("copy-webpack-plugin");
 const { merge } = require("webpack-merge");
 
 module.exports = merge(config, {
   mode: "development",
   devtool: 'inline-source-map',
-  plugins: [],
+  plugins: [
+    new webpack.DefinePlugin({
+      VERSION: JSON.stringify("v1.0.0"),
+      GRAPHQL_URL: JSON.stringify("http://localhost:3000/graphql"),
+    }),
+  ],
   module:{
     rules: [
       {

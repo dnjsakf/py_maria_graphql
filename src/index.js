@@ -15,22 +15,38 @@ import client from '@graphql/client';
 import { ThemeProvider } from "@material-ui/styles";
 import theme from "@theme";
 
+/* Styled */
+import { createGlobalStyle } from 'styled-components';
+
+/* Custom Components */
+import ErrorBoundary from '@components/ErrorBoundary';
+import { CircularSuspense } from '@components/Suspense';
+
 /* Main Component */
-import App from './App';
+const App = React.lazy(()=>import('./App'));
+
+/* Global Styled */
+const GlobalStyle = createGlobalStyle`
+  * {  box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; padding: 0; margin: 0; }
+`;
 
 /* Functions: Renderer */
 function render(Component){
-  const root = document.getElementById("root");
-  
   Component = module.hot ? hot( Component ) : Component;
   
   RouterDomRender((
     <React.StrictMode>
-      <ThemeProvider theme={ theme }>
-        <ApolloProvider client={ client }>
-          <Component />
-        </ApolloProvider>
-      </ThemeProvider>
+      <ErrorBoundary>
+        <CircularSuspense>
+          <ThemeProvider theme={ theme }>
+            <ApolloProvider client={ client }>
+              <Component />
+            </ApolloProvider>
+          </ThemeProvider>
+          <GlobalStyle />
+        </CircularSuspense>
+      </ErrorBoundary>
     </React.StrictMode>
    ), document.getElementById("root"));
 }
