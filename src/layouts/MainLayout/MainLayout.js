@@ -1,5 +1,5 @@
 /* React */
-import React, { useMemo, useState, useEffect, useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 
 /* Styled */
@@ -16,10 +16,15 @@ import ErrorBoundary from '@components/ErrorBoundary';
 import { CircularSuspense } from '@components/Suspense';
 
 /* Layout Components */
-const Header = React.lazy(()=>import('./Header'));
-const Section = React.lazy(()=>import('./Section'));
-const Footer = React.lazy(()=>import('./Footer'));
-const SideBar = React.lazy(()=>import('./SideBar'));
+// import Header from './Header';
+// import Section from './Section';
+// import Footer from './Footer';
+// import SideBar from './SideBar';
+
+const Header = React.lazy(()=>import("./Header"));
+const Section = React.lazy(()=>import("./Section"));
+const Footer = React.lazy(()=>import("./Footer"));
+const SideBar = React.lazy(()=>import("./SideBar"));
 
 /* Styled Components */
 const Container = styled.div`
@@ -43,8 +48,13 @@ const MainLayout = ( props )=>{
 
   /* Context */
   const { desktop } = useContext(ResizeContext);
+  
+  /* Side Effect: Init scroll top. */
+  useEffect(()=>{    
+    document.scrollingElement.scrollTop = 0;
+  }, [ location ]);
 
-  /* Render */
+  /* Rendering */
   return (
     <ErrorBoundary>
       <CircularSuspense>

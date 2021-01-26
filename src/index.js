@@ -27,8 +27,7 @@ const App = React.lazy(()=>import('./App'));
 
 /* Global Styled */
 const GlobalStyle = createGlobalStyle`
-  * {  box-sizing: border-box; }
-  html, body { width: 100%; height: 100%; padding: 0; margin: 0; }
+  html, body, #root { width: 100%; height: 100%; padding: 0; margin: 0; }
 `;
 
 /* Functions: Renderer */
@@ -37,16 +36,16 @@ function render(Component){
   
   RouterDomRender((
     <React.StrictMode>
-      <ErrorBoundary>
-        <CircularSuspense>
-          <ThemeProvider theme={ theme }>
-            <ApolloProvider client={ client }>
+      <ThemeProvider theme={ theme }>
+        <ApolloProvider client={ client }>
+          <ErrorBoundary>
+            <CircularSuspense>
               <Component />
-            </ApolloProvider>
-          </ThemeProvider>
-          <GlobalStyle />
-        </CircularSuspense>
-      </ErrorBoundary>
+              <GlobalStyle />
+            </CircularSuspense>
+          </ErrorBoundary>
+        </ApolloProvider>
+      </ThemeProvider>
     </React.StrictMode>
    ), document.getElementById("root"));
 }

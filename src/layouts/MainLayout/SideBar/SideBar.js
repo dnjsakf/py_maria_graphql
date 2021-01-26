@@ -37,7 +37,10 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: ${({ theme })=> theme.spacing(2) }px;
+
+  padding-left: ${({ theme })=> theme.spacing(1) }px;
+  padding-right: ${({ theme })=> theme.spacing(1) }px;
+  padding-top: ${({ theme })=> theme.spacing(2) }px;
 `;
 
 /* Main Component */

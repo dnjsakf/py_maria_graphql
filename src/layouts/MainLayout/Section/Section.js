@@ -5,9 +5,15 @@ import PropTypes from 'prop-types';
 /* Styled */
 import styled from 'styled-components';
 
+/* Material-UI */
+import { useTheme } from '@material-ui/core';
+
 /* Styled Component */
 const Container = styled.main`
   height: 100%;
+  box-sizing: border-box;
+
+  padding: ${({ theme })=>( theme.spacing(1) )}px;
 `;
 
 /* Main Component */
@@ -19,9 +25,12 @@ const Section = ( props )=>{
     ...rest
   } = props;
 
+  /* Material-UI Hook */
+  const theme = useTheme();
+
   /* Render */
   return (
-    <Container>
+    <Container theme={ theme }>
       { children }
     </Container>
   );

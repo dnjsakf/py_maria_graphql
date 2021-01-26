@@ -1,5 +1,5 @@
 /* React */
-import React, { useMemo, useState, useCallback, useEffect, useContext, createContext } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, useContext, createContext } from 'react';
 import PropTypes from 'prop-types';
 
 /* Router */
@@ -7,7 +7,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 
 /* Material UI */
 import { makeStyles, useTheme } from '@material-ui/styles';
-import { blueGrey, lightBlue } from '@material-ui/core/colors';
+import { blueGrey } from '@material-ui/core/colors';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Collapse from '@material-ui/core/Collapse';
@@ -18,8 +18,14 @@ import IconButton from '@material-ui/core/IconButton';
 /* Material UI: icons */
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
+import Settings from '@material-ui/icons/Settings';
+import AccountCircle from '@material-ui/icons/AccountCircle';
+import Ballot from '@material-ui/icons/Ballot';
+import LocalAtm from '@material-ui/icons/LocalAtm';
+import Home from '@material-ui/icons/Home';
 
 /* GraphQL */
+import client from '@graphql/client';
 import { useQuery } from '@apollo/react-hooks';
 import { MENU_QUERY } from '@graphql/query/menu';
 
@@ -40,7 +46,7 @@ const useStyles = makeStyles((theme)=>({
   menu: {
     fontFamily: ["Roboto", "Helvetica", "Arial", "sans-serif"],
     color: blueGrey[800],
-    paddingLeft: "30px",
+    // paddingLeft: "30px",
     justifyContent: 'flex-start',
     textTransform: 'none',
     letterSpacing: 0,
@@ -79,6 +85,21 @@ const ExpandIcon = ({ isExpand, open }) => (
   isExpand ? ( open ? <ExpandLess /> : <ExpandMore />  ): null
 );
 
+function mappIcon(name){
+  switch( name ){
+    case "Settings":
+      return Settings;
+    case "AccountCircle":
+      return AccountCircle;
+    case "Ballot":
+      return Ballot;
+    case "LocalAtm":
+      return LocalAtm;
+      case "Home":
+        return Home;
+  }
+}
+
 /* Sub Component */
 const MenuListItem = props => {
   /* Props */
@@ -88,12 +109,12 @@ const MenuListItem = props => {
     depth,
     ...rest
   } = props;
-
-  /* State */
-  const [open, setOpen] = useState( true );
   
   /* Context */
   const { active, setActive } = useContext(ActiveContext);
+
+  /* State */
+  const [exapend, setExpand] = useState( active.indexOf(node.link) >= 0 );
 
   /* Styles Hook */
   const classes = useStyles();
@@ -101,16 +122,19 @@ const MenuListItem = props => {
   
   /* Handler: Set active. */
   const handleActive = useCallback((e)=>{
-    setActive(node.link);
+    if( node.link ){
+      setActive(node.link);
+    }
   }, [active, node]);
 
-  /* Handler: Open collapse. */
+  /* Handler: exapend collapse. */
   const handleCallapse = useCallback((e)=>{
-    setOpen(!open);
-  }, [open, node, active]);
+    setExpand(!exapend);
+  }, [exapend, node, active]);
 
   /* Constant Variables */
   const isExpand = node.cmenu && node.cmenu.edges.length > 0;
+  const Icon = mappIcon(node.icon);
 
   /* Rendering */
   return (
@@ -131,12 +155,15 @@ const MenuListItem = props => {
             })
           }
           style={{
-            paddingLeft: theme.spacing((depth)*2)
+            paddingLeft: theme.spacing((depth)*(1.3))
           }}
           onClick={ handleActive }
-          component={ NavLink }
-          to={ node.link }
+          { ...( node.link && {
+            component: NavLink,
+            to: node.link
+          }) }
         >
+          { Icon && ( <Icon fontSize="small" style={{ marginRight: 5}} /> ) }
           { node.menuName }
         </Button>
         <IconButton
@@ -147,13 +174,13 @@ const MenuListItem = props => {
             })
           }
         >
-          <ExpandIcon isExpand={ isExpand } open={ open } />
+          <ExpandIcon isExpand={ isExpand } open={ exapend } />
         </IconButton>
       </ListItem>
       <Divider className={ classes.divider } />
       {
         isExpand && (
-          <Collapse in={ open } timeout="auto" >
+          <Collapse in={ exapend } timeout="auto" >
             <MenuList menus={ node.cmenu } depth={ depth+1 }/>
           </Collapse>
         )
@@ -215,20 +242,16 @@ const SideBarNav = props => {
   const value = useMemo(()=>({ active, setActive }), [active, setActive]);
 
   /* GraphQL */
-  const { loading, error, data, refetch } = useQuery(MENU_QUERY);
-  
-  /* Side Effect: Set frist active menu. */
-  useEffect(()=>{
-    // if( data && data.menus.edges.length > 0 && active == null ){
-    //   setActive(data.menus.edges[0].node.id);
-    // }
-    console.log(active);
-
-  }, [ data, active ]);
+  const { loading, error, data } = useQuery(
+    MENU_QUERY, {
+      client  // Lazy로 사용되능 Component에서는 client 전달 필수
+    }
+  ); 
   
   /* GraphQL Result */
   if( loading ){ return <CircularProgress />; }
-  if( error ){ return <p>{ error }</p>; }
+  if( error ){ return <p>{ error.message }</p>; }
+  if( !data ){ return <p>데이터가 존재하지 않습니다.</p>; }
 
   /* Constant Variables */
   const {

@@ -14,8 +14,11 @@ import { LayoutWithRoute } from '@components/Route';
 import { MainLayout } from '@layouts';
 
 /* Views */
-import { Main, Lotto, NotFound } from '@views';
-import Setting, { MenuSetting } from '@views/Setting';
+import { NotFound } from '@views';
+
+import Main from '@views/Main';
+import Lotto, { LottoSchedule } from '@views/Lotto';
+import Setting, { MenuSetting, UserSetting, UserAuthSetting } from '@views/Setting';
 
 /* Context: For window resize */
 export const ResizeContext = createContext({
@@ -68,6 +71,12 @@ const App = props =>{
           />
           <LayoutWithRoute
             exact
+            path="/lotto/sched"
+            layout={ MainLayout }
+            component={ LottoSchedule }
+          />
+          <LayoutWithRoute
+            exact
             path="/setting"
             layout={ MainLayout }
             component={ Setting }
@@ -77,6 +86,18 @@ const App = props =>{
             path="/setting/menus"
             layout={ MainLayout }
             component={ MenuSetting }
+          />
+          <LayoutWithRoute
+            exact
+            path="/setting/users"
+            layout={ MainLayout }
+            component={ UserSetting }
+          />
+          <LayoutWithRoute
+            exact
+            path="/setting/users/auth"
+            layout={ MainLayout }
+            component={ UserAuthSetting }
           />
           <LayoutWithRoute
             exact

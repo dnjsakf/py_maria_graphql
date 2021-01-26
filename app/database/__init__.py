@@ -22,7 +22,7 @@ def init_db():
     menu_name="메인",
     menu_type="main",
     link="/",
-    icon="Settings",
+    icon="Home",
     use_yn="Y",
     sort_order=0,
     reg_user="admin",
@@ -46,44 +46,69 @@ def init_db():
     menu_name="메뉴설정",
     menu_type="setting",
     link="/setting/menus",
-    icon="Settings",
+    icon="Ballot",
     use_yn="Y",
     sort_order=1100,
     reg_user="admin",
     reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S"),
     pmenu_id="MN1000"
   )
-  mn1110 = MN_MENU_MST(
-    menu_id="MN1110",
-    menu_name="사이드바메뉴",
+  mn1200 = MN_MENU_MST(
+    menu_id="MN1200",
+    menu_name="사용자설정",
     menu_type="setting",
-    link="/setting/menus/sidebar",
-    icon="Settings",
+    link="/setting/users",
+    icon="AccountCircle",
     use_yn="Y",
-    sort_order=1110,
+    sort_order=1200,
     reg_user="admin",
     reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S"),
-    pmenu_id="MN1100"
+    pmenu_id="MN1000"
+  )
+  mn1210 = MN_MENU_MST(
+    menu_id="MN1210",
+    menu_name="권한설정",
+    menu_type="setting",
+    link="/setting/users/auth",
+    icon="Settings",
+    use_yn="Y",
+    sort_order=1210,
+    reg_user="admin",
+    reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S"),
+    pmenu_id="MN1200"
   )
 
   session.merge(mn1000)
   session.merge(mn1100)
-  session.merge(mn1110)
-  
+  session.merge(mn1200)
+  session.merge(mn1210)
   
   mn2000 = MN_MENU_MST(
     menu_id="MN2000",
     menu_name="로또",
     menu_type="lotto",
     link="/lotto",
-    icon="Settings",
+    icon="LocalAtm",
     use_yn="Y",
     sort_order=2000,
     reg_user="admin",
     reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
   )
+  mn2100 = MN_MENU_MST(
+    menu_id="MN2100",
+    menu_name="스케줄관리",
+    menu_type="lotto",
+    link="/lotto/sched",
+    icon="LocalAtm",
+    use_yn="Y",
+    sort_order=2000,
+    reg_user="admin",
+    reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S"),
+    pmenu_id="MN2000"
+  )
   
   session.merge(mn2000)
+  session.merge(mn2100)
 
   session.commit()
   

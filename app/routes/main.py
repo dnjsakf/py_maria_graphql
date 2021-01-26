@@ -1,17 +1,8 @@
-from flask import Blueprint
+from flask import Blueprint, render_template
 
 bp = Blueprint("main", __name__, url_prefix="/")
 
-
-@bp.route("", methods=["GET","POST"])
-@bp.route("<path:path>", methods=["GET","POST"])
+@bp.route("")
+@bp.route("<path:path>")
 def view_main(path=None):
-  return '''
-  <html>
-    <head>
-    </head>
-    <body>
-      <h3>Hello, World!!!</h3>
-    </body>
-  </html>
-  '''
+  return render_template("index.html")

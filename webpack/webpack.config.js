@@ -1,11 +1,8 @@
-const webpack = require("webpack");
 const path = require("path");
-
+const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const sourcePath = path.join(__dirname, "../src");
-const publicPath = path.join(__dirname, "../src/public");
 const ouptutPath = path.join(__dirname, "../src/dist");
 
 module.exports = {
@@ -16,7 +13,7 @@ module.exports = {
       path.join(sourcePath, "index.css"),
     ],
     vendor: [
-      "react", "react-dom", "react-router-dom"
+      "react", "react-dom", "react-router-dom", "react-apollo"
     ],
   },
   output: {
@@ -26,18 +23,12 @@ module.exports = {
     chunkFilename: "[name].chunk.js",
   },
   plugins: [
-    new webpack.DefinePlugin({
-      VERSION: JSON.stringify("v1.0.0"),
-    }),
     new MiniCssExtractPlugin({
       filename: "[name].bundle.css",
     }),
-    new HtmlWebpackPlugin({
-      template: path.join(sourcePath, "index.html"),
+    new webpack.ProgressPlugin((percentage, message, ...args)=>{
+      console.info(Math.trunc(percentage*100), "%", message, ...args);
     }),
-    // new webpack.ProgressPlugin((percentage, message, ...args)=>{
-    //   console.info(Math.trunc(percentage*100), "%", message, ...args);
-    // }),
   ],
   // Loaders
   module: {
@@ -53,4 +44,27 @@ module.exports = {
       }
     ]
   },
+  // optimization: {
+  //   minimize: true,
+  //   splitChunks: {
+  //     chunks: "all",
+  //     minSize: 30000,
+  //     maxSize: 0,
+  //     minChunks: 1,
+  //     maxAsyncRequests: 6,
+  //     maxInitialRequests: 4,
+  //     automaticNameDelimiter: "~",
+  //     cacheGroups: {
+  //       defaultVendors: {
+  //         test: /[\\/]node_modules[\\/]/,
+  //         priority: -10
+  //       },
+  //       default: {
+  //         minChunks: 2,
+  //         priority: -20,
+  //         reuseExistingChunk: true
+  //       }
+  //     }
+  //   },
+  // },
 }

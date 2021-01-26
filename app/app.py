@@ -11,10 +11,15 @@ from app.routes import init_route
 APP_PATH = os.path.abspath(os.path.dirname(__file__))
 
 def create_app():
-  app = Flask(__name__)
-  app.static_url_path = "/static/"
-  app.static_folder = os.path.join(APP_PATH, "static")
-  app.template_folder = os.path.join(APP_PATH, "templates")
+  app = Flask(
+    __name__,
+    static_url_path = "/public/",
+    static_folder = os.path.join(APP_PATH, "dist"),
+    template_folder = os.path.join(APP_PATH, "dist")
+  )
+  # app.static_url_path = "/public/"
+  # app.static_folder = os.path.join(APP_PATH, "dist")
+  # app.template_folder = os.path.join(APP_PATH, "dist")
   app.url_map.strict_slashes = False
   
   # Set Environment Variables

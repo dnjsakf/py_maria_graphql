@@ -6,7 +6,7 @@ from sqlalchemy import select, func, case, asc, desc, literal
 from sqlalchemy.orm import aliased
 from ..database import session
 
-from .types import EmpType, MenuType, MN_MENU_MST
+from .types import EmpType, MenuType, LottoPrzwinType
 
 class BaseConnection(relay.Connection):
   class Meta:
@@ -31,3 +31,13 @@ class EmpConnection(BaseConnection):
 class MenuConnection(BaseConnection):
   class Meta:
     node = MenuType
+
+class LottoPrzwinConnection(BaseConnection):
+  class Meta:
+    node = LottoPrzwinType
+
+  def resolve_total_count(root, info, **input):
+    if root.total_count is not None:
+      return root.total_count
+    else:
+      return root.length

@@ -4,8 +4,7 @@ import { createHttpLink } from 'apollo-link-http';
 import { setContext } from 'apollo-link-context';
 
 const httpLink = createHttpLink({
-  // uri: 'http://localhost:3000/graphql' // Real graphql server, no proxy
-  uri: GRAPHQL_URL
+  uri: GRAPHQL_URL // Real graphql server, no proxy, 'http://localhost:3000/graphql' 
 });
 
 const authLink = setContext((_, { headers }) => {

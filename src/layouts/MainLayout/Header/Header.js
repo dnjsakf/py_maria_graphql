@@ -10,6 +10,7 @@ import styled from 'styled-components';
 
 /* Material-UI */
 import { makeStyles } from '@material-ui/styles';
+import { blueGrey, red } from '@material-ui/core/colors';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Badge from '@material-ui/core/Badge';
@@ -28,11 +29,12 @@ import { ResizeContext } from '@src/App';
 /* Styles Hook */
 const useStyles = makeStyles( theme => ({
   root: {
-    boxShadow: 'none'
+    boxShadow: 'none',
+    backgroundColor: blueGrey[300]
   },
   signOutButton: {
     marginLeft: theme.spacing(1)
-  }
+  },
 }));
 
 /* Styled Component */
@@ -64,14 +66,15 @@ const Header = ( props )=>{
 
   return (
     <AppBar
-      { ...rest }
-      className={ clsx( classes.root, className ) }
+      classes={{
+        root : classes.root
+      }}
     >
       <Toolbar>
         <RouterLink to="/">
           <img
             alt="Logo"
-            src="/logo/js-react-logo.png"
+            src="/public/logo/js-react-logo.png"
             height="50px"
           />
         </RouterLink>

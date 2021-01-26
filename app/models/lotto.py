@@ -1,11 +1,11 @@
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, String, Integer, DateTime
 from ..database.base import Base
 
 class IF_LOTTO_PRZWIN_MST(Base):
   __tablename__ = "IF_LOTTO_PRZWIN_MST"
   
-  drwt_no	            = Column(Integer, primary_key=True)
-  drwt_no_date		    = Column(String(8))
+  drwt_no	            = Column(Integer, primary_key=True) # PK -> String
+  drwt_no_date		    = Column(DateTime(8))
   drwt_no1            = Column(Integer)
   drwt_no2            = Column(Integer)
   drwt_no3            = Column(Integer)
