@@ -1,475 +1,315 @@
 /* React */
-import React, { useState, useCallback, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useContext } from 'react';
 
-/* Material-UI */
-import { lighten, makeStyles } from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TablePagination from '@material-ui/core/TablePagination';
-import TableRow from '@material-ui/core/TableRow';
-import TableSortLabel from '@material-ui/core/TableSortLabel';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import Paper from '@material-ui/core/Paper';
-import Checkbox from '@material-ui/core/Checkbox';
-import IconButton from '@material-ui/core/IconButton';
-import Tooltip from '@material-ui/core/Tooltip';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Switch from '@material-ui/core/Switch';
-import DeleteIcon from '@material-ui/icons/Delete';
-import FilterListIcon from '@material-ui/icons/FilterList';
+/* Formik */
+import { useFormik } from 'formik';
 
 /* GraphQL */
 import client from '@graphql/client';
-import { useQuery } from '@apollo/react-hooks';
-import { LOTTO_PRZWIN_QUERY } from '@graphql/query/lotto';
+import { useMutation } from 'react-apollo';
+import { CREATE_SCHEDULE } from '@graphql/mutation/schedule';
 
-import clsx  from 'clsx';
+/* Material-UI */
+import { useTheme, makeStyles } from '@material-ui/core';
+import { blue, blueGrey } from '@material-ui/core/colors'
+import FormGroup from '@material-ui/core/FormGroup';
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
+import TextField from '@material-ui/core/TextField';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
+import Button from '@material-ui/core/Button';
+import DeleteIcon from '@material-ui/icons/Delete';
+import SaveIcon from '@material-ui/icons/Save';
 
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
+/* Moment */
+import moment from 'moment';
 
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
+/* Yup */
+import * as Yup from 'yup';
 
-function stableSort(array, comparator) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  return stabilizedThis.map((el) => el[0]);
-}
+/* Custom Components */
+import { GridRow, GridColumn } from '@components/Grid';
 
-const headCells = [
-  { id: "drwtNo", label: "회차", numeric: true, disablePadding: false, align: "center" },
-  { id: "drwtNo1", label: "번호1", numeric: true, disablePadding: true, align: "center" },
-  { id: "drwtNo2", label: "번호2", numeric: true, disablePadding: true, align: "center" },
-  { id: "drwtNo3", label: "번호3", numeric: true, disablePadding: true, align: "center" },
-  { id: "drwtNo4", label: "번호4", numeric: true, disablePadding: true, align: "center" },
-  { id: "drwtNo5", label: "번호5", numeric: true, disablePadding: true, align: "center" },
-  { id: "drwtNo6", label: "번호6", numeric: true, disablePadding: true, align: "center" },
-  { id: "drwtNoBnus", label: "보너스", numeric: true, disablePadding: true, align: "center" }
-];
+/* Context */
+import { ResizeContext } from '@src/App';
 
-function EnhancedTableHead(props) {
-  const { classes, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
-  const createSortHandler = (property) => (event) => {
-    onRequestSort(event, property);
-  };
 
-  return (
-    <TableHead>
-      <TableRow>
-        <TableCell padding="checkbox">
-          <Checkbox
-            indeterminate={numSelected > 0 && numSelected < rowCount}
-            checked={rowCount > 0 && numSelected === rowCount}
-            onChange={onSelectAllClick}
-            inputProps={{ 'aria-label': 'select all desserts' }}
-          />
-        </TableCell>
-        {headCells.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            align={headCell.align}
-            padding={headCell.disablePadding ? 'none' : 'default'}
-            sortDirection={orderBy === headCell.id ? order : false}
-          >
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'asc'}
-              onClick={createSortHandler(headCell.id)}
-            >
-              {headCell.label}
-              {orderBy === headCell.id ? (
-                <span className={classes.visuallyHidden}>
-                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                </span>
-              ) : null}
-            </TableSortLabel>
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
-  );
-}
-
-EnhancedTableHead.propTypes = {
-  classes: PropTypes.object.isRequired,
-  numSelected: PropTypes.number.isRequired,
-  onRequestSort: PropTypes.func.isRequired,
-  onSelectAllClick: PropTypes.func.isRequired,
-  order: PropTypes.oneOf(['asc', 'desc']).isRequired,
-  orderBy: PropTypes.string.isRequired,
-  rowCount: PropTypes.number.isRequired,
-};
-
-const useToolbarStyles = makeStyles((theme) => ({
+/* Styles Hook */
+const useStyles = makeStyles((theme)=>({
   root: {
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(1),
+    padding: theme.spacing(1),
   },
-  highlight:
-    theme.palette.type === 'light'
-      ? {
-          color: theme.palette.secondary.main,
-          backgroundColor: lighten(theme.palette.secondary.light, 0.85),
-        }
-      : {
-          color: theme.palette.text.primary,
-          backgroundColor: theme.palette.secondary.dark,
-        },
-  title: {
-    flex: '1 1 100%',
+  datetime: {
+    width: "100%"
+  },
+  center: {
+    textAlign: "center"
+  },
+  buttonGroup: {
+    marginBottom: theme.spacing(1),
+  },
+  buttonDelete: {
+    color: blueGrey[600]
+  },
+  buttonSave: {
+    color: blue[600]
   },
 }));
 
-const EnhancedTableToolbar = (props) => {
-  const classes = useToolbarStyles();
-  const { numSelected } = props;
 
-  return (
-    <Toolbar
-      className={clsx(classes.root, {
-        [classes.highlight]: numSelected > 0,
-      })}
-    >
-      {numSelected > 0 ? (
-        <Typography className={classes.title} color="inherit" variant="subtitle1" component="div">
-          {numSelected} selected
-        </Typography>
-      ) : (
-        <Typography className={classes.title} variant="h6" id="tableTitle" component="div">
-          Nutrition
-        </Typography>
-      )}
-
-      {numSelected > 0 ? (
-        <Tooltip title="Delete">
-          <IconButton aria-label="delete">
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
-      ) : (
-        <Tooltip title="Filter list">
-          <IconButton aria-label="filter list">
-            <FilterListIcon />
-          </IconButton>
-        </Tooltip>
-      )}
-    </Toolbar>
-  );
-};
-
-EnhancedTableToolbar.propTypes = {
-  numSelected: PropTypes.number.isRequired,
-};
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    width: '100%',
-  },
-  paper: {
-    width: '100%',
-    marginBottom: theme.spacing(2),
-  },
-  table: {
-    minWidth: 750,
-  },
-  visuallyHidden: {
-    border: 0,
-    clip: 'rect(0 0 0 0)',
-    height: 1,
-    margin: -1,
-    overflow: 'hidden',
-    padding: 0,
-    position: 'absolute',
-    top: 20,
-    width: 1,
-  },
-}));
-
-function EnhancedTable(props) {
+/* Sub Component */
+const DateTimeField = props => {
+  /* props */
   const {
-    rows,
+    classes,
+    theme,
+    handleChange,
+    required,
     ...rest
   } = props;
 
-  const classes = useStyles();
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('calories');
-  const [selected, setSelected] = useState([]);
-  const [page, setPage] = useState(0);
-  const [dense, setDense] = useState(false);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [variables, setVariables] = useState({
-    orderBy: [ "DRWT_NO_DESC" ],
-    pagination: {
-      page: page,
-      rowsPerPage: rowsPerPage
-    }
-  });
-
-  /* GraphQL */
-  const { loading, error, data, refetch } = useQuery(
-    LOTTO_PRZWIN_QUERY, { client, variables });
-
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = rows.map((n) => n.name);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
-
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
-      );
-    }
-
-    setSelected(newSelected);
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleChangeDense = (event) => {
-    setDense(event.target.checked);
-  };
-  
-  /* Side Effect: Refeching */
-  useEffect(()=>{
-    refetch({
-      ...variables,
-      pagination: {
-        page: page,
-        rowsPerPage: rowsPerPage
-      }
-    });
-  },[ page, rowsPerPage ]);
-
-  const isSelected = (name) => selected.indexOf(name) !== -1;
-
-  const emptyRows = 0; // rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
-
-  console.log( data );
-
+  /* Rendering */
   return (
-    <div className={classes.root}>
-      <Paper className={classes.paper}>
-        <EnhancedTableToolbar numSelected={selected.length} />
-        <TableContainer>
-          <Table
-            className={classes.table}
-            aria-labelledby="tableTitle"
-            size={dense ? 'small' : 'medium'}
-            aria-label="enhanced table"
-          >
-            <EnhancedTableHead
-              classes={classes}
-              numSelected={selected.length}
-              order={order}
-              orderBy={orderBy}
-              onSelectAllClick={handleSelectAllClick}
-              onRequestSort={handleRequestSort}
-              rowCount={data ? data.przwinList.length : 0}
-            />
-            <TableBody>
-              {data && stableSort(data.przwinList, getComparator(order, orderBy))
-                .map((row, index) => {
-                  const isItemSelected = isSelected(row.drwtNo);
-                  const labelId = `enhanced-table-checkbox-${index}`;
-
-                  return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row.drwtNo)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={row.drwtNo}
-                      selected={isItemSelected}
-                    >
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                          checked={isItemSelected}
-                          inputProps={{ 'aria-labelledby': labelId }}
-                        />
-                      </TableCell>
-                      <TableCell component="th" id={labelId} scope="row" padding="none">
-                        {row.drwtNo}
-                      </TableCell>
-                      <TableCell align="right">{row.drwtNo1}</TableCell>
-                      <TableCell align="right">{row.drwtNo2}</TableCell>
-                      <TableCell align="right">{row.drwtNo3}</TableCell>
-                      <TableCell align="right">{row.drwtNo4}</TableCell>
-                      <TableCell align="right">{row.drwtNo5}</TableCell>
-                      <TableCell align="right">{row.drwtNo6}</TableCell>
-                      <TableCell align="right">{row.drwtNoBnus}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={ data ? data.przwinList.length : 0}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onChangePage={handleChangePage}
-          onChangeRowsPerPage={handleChangeRowsPerPage}
-        />
-      </Paper>
-      <FormControlLabel
-        control={<Switch checked={dense} onChange={handleChangeDense} />}
-        label="Dense padding"
-      />
-    </div>
+    <GridRow padding={ theme.spacing(2) }>
+      <GridColumn xs={ 12 }>
+        <FormControl fullWidth>
+          <TextField
+            type="datetime-local"
+            InputLabelProps={{
+              shrink: true,
+            }}
+            InputProps={{
+              onChange: handleChange
+            }}
+            { ...rest }
+          />
+          { required && <FormHelperText>Required</FormHelperText> }
+        </FormControl>
+      </GridColumn>
+    </GridRow>
   );
 }
 
-const LottoPrzwinList = props => {
+/* Sub Component */
+const IntervalField = props => {
   /* Props */
   const {
-    className,
-    columns,
+    classes,
+    theme,
+    formik,
     ...rest
   } = props;
-    
-  /* State */
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [variables, setVariables] = useState({
-    orderBy: [ "DRWT_NO_DESC" ],
-    pagination: {
-      page: page,
-      rowsPerPage: rowsPerPage
-    }
-  });
 
-  /* GraphQL */
-  const { loading, error, data, refetch } = useQuery(
-    LOTTO_PRZWIN_QUERY, { variables });
-  
-  /* Styles Hook */
-  const classes = useStyles();
-
-  /* Handler: Change page */
-  const handleChangePage = useCallback((event, newPage) => {
-    setPage(newPage);
-  }, []);
-
-  /* Handler: Change RowsPerPage */
-  const handleChangeRowsPerPage = useCallback((event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  }, []);
-  
-  /* Side Effect: Refeching */
-  useEffect(()=>{
-    refetch({
-      ...variables,
-      pagination: {
-        page: page,
-        rowsPerPage: rowsPerPage
-      }
-    });
-  },[ page, rowsPerPage ]);
-
+  /* Rendering */
   return (
-    <Paper className={classes.root}>
-      <TableContainer className={classes.container}>
-        <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  align={column.align}
-                  style={{ minWidth: column.minWidth }}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {/* data.przwinList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) */}
-            { data && data.przwinList.map((row) => {
-              return (
-                <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                  {columns.map((column) => {
-                    const value = row[column.id];
-                    return (
-                      <TableCell key={column.id} align={column.align}>
-                        {column.format && typeof value === 'number' ? column.format(value) : value}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25, 100]}
-        component="div"
-        count={ data ? data.totalCount : 0 }
-        rowsPerPage={ rowsPerPage }
-        page={ page }
-        onChangePage={ handleChangePage }
-        onChangeRowsPerPage={ handleChangeRowsPerPage }
-      />
-    </Paper>
+    <GridRow>
+      <GridColumn xs={ 12 }>
+        <GridRow padding={ theme.spacing(2) }>
+          <GridColumn xs={ 6 }>
+            <FormControl fullWidth>
+              <TextField type="date"
+                label="Start Date"
+                id="start_date" 
+                name="start_date"
+                value={ formik.values.start_date }
+                error={ !!formik.errors.start_date }
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                InputProps={{
+                  onChange: formik.handleChange,
+                  classes: {
+                    input: classes.center
+                  }
+                }}
+              />
+              {formik.errors.start_date && (
+                <FormHelperText>{ formik.errors.start_date }</FormHelperText>
+              )}
+            </FormControl>
+          </GridColumn>
+          <GridColumn xs={ 6 }>
+            <FormControl fullWidth>
+              <TextField type="date"
+                label="End Date"
+                id="end_date" 
+                name="end_date"
+                value={ formik.values.end_date }
+                error={ !!formik.errors.end_date }
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                InputProps={{
+                  onChange: formik.handleChange,
+                  classes: {
+                    input: classes.center
+                  }
+                }}
+              />
+              {formik.errors.end_date && (
+                <FormHelperText>{ formik.errors.end_date }</FormHelperText>
+              )}
+            </FormControl>
+          </GridColumn>
+        </GridRow>
+        <GridRow padding={ theme.spacing(2) }>
+          <GridColumn xs={ 6 }>
+            <FormControl fullWidth>
+              <TextField type="number"
+                label="Weeks"
+                id="weeks" 
+                name="weeks"
+                value={ formik.values.weeks }
+                error={ !!formik.errors.weeks }
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                InputProps={{
+                  onChange: formik.handleChange,
+                  classes: {
+                    input: classes.center
+                  }
+                }}
+              />
+              {formik.errors.weeks && (
+                <FormHelperText>{ formik.errors.weeks }</FormHelperText>
+              )}
+            </FormControl>
+          </GridColumn>
+          <GridColumn xs={ 6 }>
+            <FormControl fullWidth>
+              <TextField type="number"
+                label="Days"
+                id="days" 
+                name="days"
+                value={ formik.values.days }
+                error={ !!formik.errors.days }
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                InputProps={{
+                  onChange: formik.handleChange,
+                  classes: {
+                    input: classes.center
+                  }
+                }}
+              />
+              {formik.errors.days && (
+                <FormHelperText>{ formik.errors.days }</FormHelperText>
+              )}
+            </FormControl>
+          </GridColumn>
+        </GridRow>
+        <GridRow padding={ theme.spacing(2) }>
+          <GridColumn xs={ 4 }>
+            <FormControl fullWidth>
+              <TextField type="number"
+                label="Hours"
+                id="hours" 
+                name="hours"
+                value={ formik.values.hours }
+                error={ !!formik.errors.hours }
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                InputProps={{
+                  onChange: formik.handleChange,
+                  classes: {
+                    input: classes.center
+                  }
+                }}
+              />
+              {formik.errors.hours && (
+                <FormHelperText>{ formik.errors.hours }</FormHelperText>
+              )}
+            </FormControl>
+          </GridColumn>
+          <GridColumn xs={ 4 }>
+            <FormControl fullWidth>
+              <TextField type="number"
+                label="Minutes"
+                id="minutes" 
+                name="minutes"
+                value={ formik.values.minutes }
+                error={ !!formik.errors.minutes }
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                InputProps={{
+                  onChange: formik.handleChange,
+                  classes: {
+                    input: classes.center
+                  }
+                }}
+              />
+              {formik.errors.minutes && (
+                <FormHelperText>{ formik.errors.minutes }</FormHelperText>
+              )}
+            </FormControl>
+          </GridColumn>
+          <GridColumn xs={ 4 }>
+            <FormControl fullWidth>
+              <TextField type="number"
+                label="Seconds"
+                id="seconds" 
+                name="seconds"
+                value={ formik.values.seconds }
+                error={ !!formik.errors.seconds }
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                InputProps={{
+                  onChange: formik.handleChange,
+                  classes: {
+                    input: classes.center
+                  }
+                }}
+              />
+              {formik.errors.seconds && (
+                <FormHelperText>{ formik.errors.seconds }</FormHelperText>
+              )}
+            </FormControl>
+          </GridColumn>
+        </GridRow>
+      </GridColumn>
+    </GridRow>
+  );
+}
+
+/* Sub Component */
+const CrontabField = props => {
+  /* props */
+  const {
+    classes,
+    theme,
+    handleChange,
+    required,
+    ...rest
+  } = props;
+
+  /* Rendering */
+  return (
+    <GridRow padding={ theme.spacing(2) }>
+      <GridColumn xs={ 12 }>
+        <FormControl fullWidth>
+          <TextField
+            type="text"
+            InputLabelProps={{
+              shrink: true,
+            }}
+            InputProps={{
+              onChange: handleChange
+            }}
+            { ...rest }
+          />
+          { required &&  <FormHelperText>Required</FormHelperText> }
+        </FormControl>
+      </GridColumn>
+    </GridRow>
   );
 }
 
@@ -482,11 +322,211 @@ const LottoShcedule = props =>{
     ...rest
   } = props;
 
+  /* Material-UI Hook */
+  const classes = useStyles();
+  const theme = useTheme();
+
+  /* Context */
+  const { desktop } = useContext(ResizeContext);
+
+  /* State */
+  const [ initValue, setInitValue ] = useState({
+    shceduleId: "",
+    scheduleType: "interval",
+    datetime: moment().format("YYYY-MM-DDTHH:mm:ss"),
+    weeks: 0,
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    start_date: moment().format("YYYY-MM-DD"),
+    end_date: moment().format("YYYY-MM-DD"),
+    crontab: "",
+  });
+  
+  /* GraphQL */
+  const [ createSchedule, { loading: createLoading } ] = useMutation(
+    CREATE_SCHEDULE, {
+      client,
+      onError( error ){
+        console.log(error);
+      },
+      onCompleted({ createSchedule: { schedule, success } }) {
+        console.log({
+          schedule,
+          success
+        });
+      }
+    }
+  );
+
+  /* Formik */
+  const formik = useFormik({
+    initialValues: initValue,
+    validationSchema: Yup.object().shape({
+      scheduleId: Yup.string(),
+      scheduleType: Yup.string()
+        .required('Required')
+        .oneOf(['date','interval','crontab']),
+      /* Date */
+      datetime: Yup.string(),
+      /* Crontab */
+      crontab: Yup.string(),
+    }),
+    onSubmit(values) {
+      const variables = values;
+
+      switch( values.scheduleType ){
+        case "date":
+          const d = moment(values.datetime, "YYYY-MM-DDTHH:mm:ss");
+          const date = d.format("YYYYMMDD");
+          const time = d.format("HHmmss");
+
+          Object.assign(variables, {
+            datetime: date+time,
+            date: date,
+            time: time,
+          });
+          break;
+        case "interval":
+          const sd = moment(values.start_date, "YYYY-MM-DD").format("YYYYMMDD");
+          const ed = moment(values.end_date, "YYYY-MM-DD").format("YYYYMMDD");
+
+          Object.assign(variables, {
+            start_date: sd,
+            end_date: ed,
+          });
+
+          break;
+      }
+
+      console.log(JSON.stringify(variables, null, 2));
+      if(confirm("저장하시겠습니까?")){
+        createSchedule({
+          variables
+        });
+      }
+    }
+  });
+
   /* Rendering */
   return (
-    // <EnhancedTable />
-    <h1>LottoShcedule</h1>
+    <GridRow>
+      <GridColumn xs={ desktop ? 3 : 12 }>
+        <form
+          className={ classes.root }
+          onSubmit={ formik.handleSubmit }
+          noValidate
+        >
+          <GridRow padding={ theme.spacing(2) }>
+            <GridColumn xs={ 12 }>
+              <FormControl fullWidth>
+                <TextField
+                  fullWidth
+                  type="text"
+                  label="Schedule ID"
+                  id="shceduleId"
+                  name="shceduleId"
+                  error={ !!formik.errors.scheduleId }
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  InputProps={{
+                    onChange: formik.handleChange,
+                  }}
+                  inputProps={{
+                    maxLength: 30
+                  }}
+                  placeholder={ "UUID" }
+                />
+                {formik.errors.scheduleId && (
+                  <FormHelperText>{ formik.errors.scheduleId }</FormHelperText>
+                )}
+              </FormControl>
+            </GridColumn>
+          </GridRow>
+          <GridRow padding={ theme.spacing(2) }>
+            <GridColumn xs={ 12 }>
+              <FormControl fullWidth required error={ !!formik.errors.scheduleType }>
+                <InputLabel id="schedule-type-label">Schedule Type</InputLabel>
+                <Select
+                  labelId="schedule-type-label"
+                  id="scheduleType"
+                  name="scheduleType"
+                  value={ formik.values.scheduleType }
+                  onChange={ formik.handleChange }
+                >
+                  <MenuItem value="date">Date</MenuItem>
+                  <MenuItem value="interval">Interval</MenuItem>
+                  <MenuItem value="crontab">CronTab</MenuItem>
+                </Select>
+                {formik.errors.scheduleType && (
+                  <FormHelperText>{ formik.errors.scheduleType }</FormHelperText>
+                )}
+              </FormControl>
+            </GridColumn>
+          </GridRow>
+          <GridRow>
+            <GridColumn xs={ 12 }>
+              {
+                formik.values.scheduleType == "crontab"
+                ? <CrontabField
+                    label="crontab"
+                    id="crontab"
+                    name="crontab"
+                    value={ formik.values.crontab }
+                    handleChange={ formik.handleChange }
+                    classes={ classes }
+                    theme={ theme }
+                  />
+                : formik.values.scheduleType == "interval"
+                ? <IntervalField
+                    formik={ formik }
+                    classes={ classes }
+                    theme={ theme }
+                  />
+                : <DateTimeField
+                    classes={ classes }
+                    theme={ theme }
+                    label="datetime"
+                    id="datetime"
+                    name="datetime"
+                    value={ formik.values.datetime }
+                    handleChange={ formik.handleChange }
+                    error={ formik.errors.datetime }
+                  />
+              }
+            </GridColumn>
+          </GridRow>
+          <GridRow padding={ theme.spacing(2) } style={{ textAlign: "center" }}>
+            <GridColumn xs={ 12 }>
+              <ButtonGroup className={ classes.buttonGroup }>
+                <Button
+                  className={ classes.buttonDelete }
+                  startIcon={ <DeleteIcon />}
+                >
+                  초기화
+                </Button>
+                <Button
+                  className={ classes.buttonSave }
+                  startIcon={ <SaveIcon />}
+                  type="submit"
+                >
+                  저장
+                </Button>
+              </ButtonGroup>
+            </GridColumn>
+          </GridRow>
+        </form>
+      </GridColumn>
+    </GridRow>
   );
 }
 
 export default LottoShcedule;
+
+/*
+ * https://material-ui.com/components/selects/
+ * https://material-ui.com/api/input/#css
+ * https://material-ui.com/components/text-fields/
+ */

@@ -26,9 +26,9 @@ class BaseLauncher(object):
     self.sched = klass(**kwargs)
     self.sched.configure(
       jobstores={
-        # "sqlite": SQLAlchemyJobStore(url='sqlite:///app/database/example.db'),
-        # "default": SQLAlchemyJobStore(url='sqlite:///app/database/example.db')
-        "default": MemoryJobStore()
+        "oracle": SQLAlchemyJobStore(url="oracle://LOTTO:lotto12!#@127.0.0.1:1521/CAMPDB"),
+        # "sqlite": SQLAlchemyJobStore(url='sqlite:///app/database/example.db')
+        # "default": MemoryJobStore()
       },
       executors={
         'default': ThreadPoolExecutor(20),

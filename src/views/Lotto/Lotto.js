@@ -1,5 +1,5 @@
 /* React */
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 
 /* Material-UI */
 import { makeStyles } from '@material-ui/core/styles';
@@ -16,7 +16,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 
 /* GraphQL */
 import client from '@graphql/client';
-import { useQuery, useLazyQuery } from '@apollo/react-hooks';
+import { useQuery } from '@apollo/react-hooks';
 import { LOTTO_PRZWIN_QUERY } from '@graphql/query/lotto';
 
 /* Custom Components */

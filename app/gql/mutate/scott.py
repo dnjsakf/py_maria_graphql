@@ -1,17 +1,11 @@
 import graphene
-from graphql_relay.node.node import from_global_id
 
-from .types import EmpType, EmpModel
+from .base import input_to_dictionary
+from ..types import EmpType
 
-def input_to_dictionary(input):
-  """Method to convert Graphene inputs into dictionary"""
-  dictionary = {}
-  for key in input:
-    # Convert GraphQL global id to database id
-    if key[-2:] == 'id':
-      input[key] = from_global_id(input[key])[1]
-    dictionary[key] = input[key]
-  return dictionary
+__all__ = [
+  'EmpMutation'
+]
 
 class CreateEmpInput(graphene.InputObjectType):
   empno     = graphene.Int(required=True)
@@ -28,22 +22,17 @@ class CreateEmp(graphene.Mutation):
     input = CreateEmpInput(required=True)
 
   emp = graphene.Field(lambda: EmpType)
-  ok = graphene.Boolean()
+  success = graphene.Boolean()
 
   @staticmethod
   def mutate(self, info, input):
+    Model = EmpType._meta.model
     data = input_to_dictionary(input)
-    emp = EmpModel(**data)
+    emp = Model(**data)
     session.add(emp)
     session.commit()
-    ok = True
-    return CreateEmp(emp=emp, ok=ok)
+    success = True
+    return CreateEmp(emp=emp, success=success)
 
 class EmpMutation(graphene.ObjectType):
   createEmp = CreateEmp.Field()
-
-class RootMutation(
-    EmpMutation,
-    graphene.ObjectType
-  ):
-  pass

@@ -29,7 +29,7 @@ const SideBar = React.lazy(()=>import("./SideBar"));
 /* Styled Components */
 const Container = styled.div`
   height: 100%;
-  padding-top: ${({ theme })=>( theme.breakpoints.up('sm') ? 64 : 56 )}px;
+  padding-top: ${({ desktop })=>( desktop ? 64 : 56 )}px;
   ${({ desktop })=>( desktop && "padding-left: 240px" )}
 `;
 
