@@ -68,7 +68,7 @@ const MainLayout = ( props )=>{
           <Section>
             { children }
           </Section>
-          <Footer />
+          {/* <Footer /> */}
         </Container>
       </CircularSuspense>
     </ErrorBoundary>

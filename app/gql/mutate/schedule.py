@@ -4,7 +4,7 @@ from uuid import uuid4
 from app.database import session
 
 from .base import input_to_dictionary
-from ..types import (
+from ..types.schedule import (
   DateScheduleType,
   IntervalScheduleType,
   CrontabScheduleType,
@@ -30,7 +30,7 @@ class IntervalScheduleInput(graphene.InputObjectType):
   end_date    = graphene.String()
 
 class CrontabScheduleInput(graphene.InputObjectType):
-  crontab    = graphene.String(max=50)
+  crontab     = graphene.String(max=50)
 
 class ScheduleInput(graphene.InputObjectType):
   schd_id     = graphene.String()
@@ -72,44 +72,62 @@ class CreateSchedule(graphene.Mutation):
     SubType = None
 
     main_data = input_to_dictionary(input)
-    if main_data.get("schd_id") is None:
+    if main_data.get("schd_id") is None or main_data.get("schd_id") == '':
       main_data["schd_id"] = str(uuid4())
-
-    schd_type = main_data.get("schd_type", None)
-    if schd_type == 'date':
-      SubType = DateScheduleType
-      main_data["date_schd_id"] = main_data["schd_id"]
-    elif schd_type == 'interval':
-      SubType = IntervalScheduleType
-      main_data["intv_schd_id"] = main_data["schd_id"]
-    elif schd_type == 'crontab':
-      SubType = CrontabScheduleType
-      main_data["cron_schd_id"] = main_data["schd_id"]
-    else:
-      return CreateSchedule(schedule=None, success=False)
     
-
+    schd_type = main_data.get("schd_type", None)
     sub_data = dict(kwargs.get(schd_type, None))
     sub_data["schd_id"] = main_data["schd_id"]
-      
-    MainModel = MainType._meta.model
-    SubModel = SubType._meta.model
+    sub_data["mst_id"] = main_data["schd_id"]
 
-    main_model = MainModel(**main_data)
-    sub_model = SubModel(**sub_data)
-    # main_model = MainModel(**dict([
+    model = MainType._meta.model(**main_data)
+    if schd_type == 'date':
+      model.date.append(DateScheduleType._meta.model(**sub_data))
+
+    elif schd_type == 'interval':
+      model.interval.append(IntervalScheduleType._meta.model(**sub_data))
+
+    elif schd_type == 'crontab':
+      model.crontab.append(CrontabScheduleType._meta.model(**sub_data))
+
+    else:
+      return CreateSchedule(schedule=None, success=False)
+
+    # model = MainModel(**dict([
     #   (col, data.get(col)) for col in MainModel.__table__.columns.keys()
     # ]))
-    # sub_model = SubModel(**dict([
-    #   (col, data.get(col)) for col in SubModel.__table__.columns.keys()
-    # ]))
     
-    session.add(sub_model)
-    session.add(main_model)
+    session.add(model)
     session.commit()
     success = True
 
-    return CreateSchedule(schedule=main_model, success=success)
+    return CreateSchedule(schedule=model, success=success)
+
+
+class DeleteScheduleInput(graphene.InputObjectType):
+  schd_ids = graphene.List(graphene.String, required=True)
+
+class DeleteSchedule(graphene.Mutation):
+  class Arguments:
+    input = DeleteScheduleInput(required=True)
+
+  deleted = graphene.Int()
+  success = graphene.Boolean()
+
+  @staticmethod
+  def mutate(self, info, input, **kwargs):
+    Type = ScheduleType
+    Model = Type._meta.model
+
+    schd_ids = input.get("schd_ids", [])
+
+    deleted = ScheduleType.get_query(info).filter(
+      Model.schd_id.in_(schd_ids)
+    ).delete(synchronize_session=False) # fetch, evaluate
+    session.commit()
+
+    return DeleteSchedule(deleted=0, success=True)
 
 class ScheduleMutation(graphene.ObjectType):
   createSchedule = CreateSchedule.Field()
+  deleteSchedule = DeleteSchedule.Field()

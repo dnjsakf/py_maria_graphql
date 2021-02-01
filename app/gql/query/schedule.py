@@ -1,13 +1,15 @@
 import graphene
 from graphene import relay
+from graphene_sqlalchemy import SQLAlchemyConnectionField
+from sqlalchemy import desc
 
-from ..types import (
+from ..types.schedule import (
   DateScheduleType,
   IntervalScheduleType,
   CrontabScheduleType,
   ScheduleType
 )
-from ..connections import (
+from ..connections.schedule import (
   DateScheduleConnection,
   IntervalScheduleConnection,
   CrontabScheduleConnection,
@@ -19,4 +21,12 @@ __all__ = [
 ]
 
 class ScheduleQuery(graphene.ObjectType):
-  schedules = relay.ConnectionField(ScheduleConnection)
+  schedules = SQLAlchemyConnectionField(ScheduleConnection)
+
+  schedule_list = graphene.List(ScheduleType)
+
+  def resolve_schedule_list(root, info):
+    Model = ScheduleType._meta.model
+    query = ScheduleType.get_query(info)
+
+    return query.order_by(desc(Model.reg_dttm)).all()

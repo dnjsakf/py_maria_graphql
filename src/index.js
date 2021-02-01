@@ -16,7 +16,7 @@ import { ThemeProvider } from "@material-ui/styles";
 import theme from "@theme";
 
 /* Styled */
-import { createGlobalStyle } from 'styled-components';
+import { createGlobalStyle, ThemeProvider as StyledThemeProvider } from 'styled-components';
 
 /* Custom Components */
 import ErrorBoundary from '@components/ErrorBoundary';
@@ -36,16 +36,18 @@ function render(Component){
   
   RouterDomRender((
     <React.StrictMode>
-      <ThemeProvider theme={ theme }>
-        <ApolloProvider client={ client }>
-          <ErrorBoundary>
-            <CircularSuspense>
-              <Component />
-              <GlobalStyle />
-            </CircularSuspense>
-          </ErrorBoundary>
-        </ApolloProvider>
-      </ThemeProvider>
+      <StyledThemeProvider theme={ theme }>
+        <ThemeProvider theme={ theme }>
+          <ApolloProvider client={ client }>
+            <ErrorBoundary>
+              <CircularSuspense>
+                <Component />
+                <GlobalStyle />
+              </CircularSuspense>
+            </ErrorBoundary>
+          </ApolloProvider>
+        </ThemeProvider>
+      </StyledThemeProvider>
     </React.StrictMode>
    ), document.getElementById("root"));
 }

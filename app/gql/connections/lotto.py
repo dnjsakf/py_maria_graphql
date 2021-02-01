@@ -1,5 +1,5 @@
 from .base import BaseConnection
-from ..types import (
+from ..types.lotto import (
   LottoPrzwinType
 )
 

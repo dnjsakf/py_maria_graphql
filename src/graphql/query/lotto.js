@@ -8,7 +8,7 @@ export const LOTTO_PRZWIN_QUERY = gql`
     }
   ) {
     totalCount
-    rows (
+    przwinList (
       pagination: $pagination
     ) {
       id

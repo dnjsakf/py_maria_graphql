@@ -1,12 +1,14 @@
 import graphene
 
+from .common import *
 from .lotto import *
-from .menus import *
 from .schedule import *
 from .scott import *
 
 __all__ = [
   'EmpQuery',
+  # 'CodeTypeQuery',
+  'CodeQuery',
   'MenuQuery',
   'LottoQuery',
   'ScheduleQuery'
@@ -14,6 +16,8 @@ __all__ = [
 
 class RootQuery(
     EmpQuery,
+    # CodeTypeQuery,
+    CodeQuery,
     MenuQuery,
     LottoQuery,
     ScheduleQuery,

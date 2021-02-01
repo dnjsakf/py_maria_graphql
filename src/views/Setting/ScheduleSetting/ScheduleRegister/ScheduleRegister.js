@@ -1,5 +1,6 @@
 /* React */
 import React, { useState, useContext } from 'react';
+import PropTypes from 'prop-types';
 
 /* Formik */
 import { useFormik } from 'formik';
@@ -32,7 +33,9 @@ import moment from 'moment';
 import * as Yup from 'yup';
 
 /* Custom Components */
+import { FormDialog } from '@components/Dialog';
 import { GridRow, GridColumn } from '@components/Grid';
+import { BackdropProgress } from '@components/Progress';
 
 /* Context */
 import { ResizeContext } from '@src/App';
@@ -315,10 +318,12 @@ const CrontabField = props => {
 
 
 /* Main Component */
-const LottoShcedule = props =>{
+const ScheduleRegister = props =>{
   /* Props */
   const {
     className,
+    open,
+    onClose,
     ...rest
   } = props;
 
@@ -331,7 +336,7 @@ const LottoShcedule = props =>{
 
   /* State */
   const [ initValue, setInitValue ] = useState({
-    shceduleId: "",
+    scheduleId: "",
     scheduleType: "interval",
     datetime: moment().format("YYYY-MM-DDTHH:mm:ss"),
     weeks: 0,
@@ -356,6 +361,7 @@ const LottoShcedule = props =>{
           schedule,
           success
         });
+        onClose(null, true);
       }
     }
   );
@@ -370,6 +376,14 @@ const LottoShcedule = props =>{
         .oneOf(['date','interval','crontab']),
       /* Date */
       datetime: Yup.string(),
+      /* Interval */
+      weeks: Yup.number(),
+      days: Yup.number(),
+      hours: Yup.number(),
+      minutes: Yup.number(),
+      seconds: Yup.number(),
+      startDate: Yup.string(),
+      endDate: Yup.string(),
       /* Crontab */
       crontab: Yup.string(),
     }),
@@ -411,119 +425,104 @@ const LottoShcedule = props =>{
 
   /* Rendering */
   return (
-    <GridRow>
-      <GridColumn xs={ desktop ? 3 : 12 }>
-        <form
-          className={ classes.root }
-          onSubmit={ formik.handleSubmit }
-          noValidate
-        >
-          <GridRow padding={ theme.spacing(2) }>
-            <GridColumn xs={ 12 }>
-              <FormControl fullWidth>
-                <TextField
-                  fullWidth
-                  type="text"
-                  label="Schedule ID"
-                  id="shceduleId"
-                  name="shceduleId"
-                  error={ !!formik.errors.scheduleId }
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  InputProps={{
-                    onChange: formik.handleChange,
-                  }}
-                  inputProps={{
-                    maxLength: 30
-                  }}
-                  placeholder={ "UUID" }
-                />
-                {formik.errors.scheduleId && (
-                  <FormHelperText>{ formik.errors.scheduleId }</FormHelperText>
-                )}
-              </FormControl>
-            </GridColumn>
-          </GridRow>
-          <GridRow padding={ theme.spacing(2) }>
-            <GridColumn xs={ 12 }>
-              <FormControl fullWidth required error={ !!formik.errors.scheduleType }>
-                <InputLabel id="schedule-type-label">Schedule Type</InputLabel>
-                <Select
-                  labelId="schedule-type-label"
-                  id="scheduleType"
-                  name="scheduleType"
-                  value={ formik.values.scheduleType }
-                  onChange={ formik.handleChange }
-                >
-                  <MenuItem value="date">Date</MenuItem>
-                  <MenuItem value="interval">Interval</MenuItem>
-                  <MenuItem value="crontab">CronTab</MenuItem>
-                </Select>
-                {formik.errors.scheduleType && (
-                  <FormHelperText>{ formik.errors.scheduleType }</FormHelperText>
-                )}
-              </FormControl>
-            </GridColumn>
-          </GridRow>
-          <GridRow>
-            <GridColumn xs={ 12 }>
-              {
-                formik.values.scheduleType == "crontab"
-                ? <CrontabField
-                    label="crontab"
-                    id="crontab"
-                    name="crontab"
-                    value={ formik.values.crontab }
-                    handleChange={ formik.handleChange }
-                    classes={ classes }
-                    theme={ theme }
-                  />
-                : formik.values.scheduleType == "interval"
-                ? <IntervalField
-                    formik={ formik }
-                    classes={ classes }
-                    theme={ theme }
-                  />
-                : <DateTimeField
-                    classes={ classes }
-                    theme={ theme }
-                    label="datetime"
-                    id="datetime"
-                    name="datetime"
-                    value={ formik.values.datetime }
-                    handleChange={ formik.handleChange }
-                    error={ formik.errors.datetime }
-                  />
-              }
-            </GridColumn>
-          </GridRow>
-          <GridRow padding={ theme.spacing(2) } style={{ textAlign: "center" }}>
-            <GridColumn xs={ 12 }>
-              <ButtonGroup className={ classes.buttonGroup }>
-                <Button
-                  className={ classes.buttonDelete }
-                  startIcon={ <DeleteIcon />}
-                >
-                  초기화
-                </Button>
-                <Button
-                  className={ classes.buttonSave }
-                  startIcon={ <SaveIcon />}
-                  type="submit"
-                >
-                  저장
-                </Button>
-              </ButtonGroup>
-            </GridColumn>
-          </GridRow>
-        </form>
-      </GridColumn>
-    </GridRow>
+    <FormDialog 
+      open={ open }
+      onClose={ onClose }
+      onSubmit={ formik.handleSubmit }
+      className={ classes.root }
+      noValidate
+    >
+      <GridRow padding={ theme.spacing(2) }>
+        <GridColumn xs={ 12 }>
+          <FormControl fullWidth>
+            <TextField
+              fullWidth
+              type="text"
+              label="Schedule ID"
+              id="scheduleId"
+              name="scheduleId"
+              error={ !!formik.errors.scheduleId }
+              InputLabelProps={{
+                shrink: true,
+              }}
+              InputProps={{
+                onChange: formik.handleChange,
+              }}
+              inputProps={{
+                maxLength: 30
+              }}
+              placeholder={ "UUID" }
+            />
+            {formik.errors.scheduleId && (
+              <FormHelperText>{ formik.errors.scheduleId }</FormHelperText>
+            )}
+          </FormControl>
+        </GridColumn>
+      </GridRow>
+      <GridRow padding={ theme.spacing(2) }>
+        <GridColumn xs={ 12 }>
+          <FormControl fullWidth required error={ !!formik.errors.scheduleType }>
+            <InputLabel id="schedule-type-label">Schedule Type</InputLabel>
+            <Select
+              labelId="schedule-type-label"
+              id="scheduleType"
+              name="scheduleType"
+              value={ formik.values.scheduleType }
+              onChange={ formik.handleChange }
+            >
+              <MenuItem value="date">Date</MenuItem>
+              <MenuItem value="interval">Interval</MenuItem>
+              <MenuItem value="crontab">CronTab</MenuItem>
+            </Select>
+            {formik.errors.scheduleType && (
+              <FormHelperText>{ formik.errors.scheduleType }</FormHelperText>
+            )}
+          </FormControl>
+        </GridColumn>
+      </GridRow>
+      <GridRow>
+        <GridColumn xs={ 12 }>
+          {
+            formik.values.scheduleType == "crontab"
+            ? <CrontabField
+                label="crontab"
+                id="crontab"
+                name="crontab"
+                value={ formik.values.crontab }
+                handleChange={ formik.handleChange }
+                classes={ classes }
+                theme={ theme }
+              />
+            : formik.values.scheduleType == "interval"
+            ? <IntervalField
+                formik={ formik }
+                classes={ classes }
+                theme={ theme }
+              />
+            : <DateTimeField
+                classes={ classes }
+                theme={ theme }
+                label="datetime"
+                id="datetime"
+                name="datetime"
+                value={ formik.values.datetime }
+                handleChange={ formik.handleChange }
+                error={ formik.errors.datetime }
+              />
+          }
+        </GridColumn>
+      </GridRow>
+      <BackdropProgress loading={ createLoading }/>
+    </FormDialog>
   );
 }
 
-export default LottoShcedule;
+ScheduleRegister.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+}
+
+export default ScheduleRegister;
 
 /*
  * https://material-ui.com/components/selects/

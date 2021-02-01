@@ -1,12 +1,13 @@
+from datetime import datetime
 from graphene_sqlalchemy import SQLAlchemyObjectType
 
-from app.models.common import (
+from app.models.schedule import (
   WK_SCHD_DATE,
   WK_SCHD_INTV,
   WK_SCHD_CRON,
   WK_SCHD_MST
 )
-from ..nodes import (
+from ..nodes.schedule import (
   DateScheduleNode,
   IntervalScheduleNode,
   CrontabScheduleNode,
@@ -39,6 +40,12 @@ class ScheduleType(SQLAlchemyObjectType):
   class Meta:
     model = WK_SCHD_MST
     interfaces = (ScheduleNode, )
+
+  def resolve_reg_user(root, info):
+    return "SYSTEM"
+
+  def resolve_reg_dttm(root, info):
+    return datetime.now().strftime("%Y%m%d%H%M%S")
 
 types = [
   DateScheduleType,

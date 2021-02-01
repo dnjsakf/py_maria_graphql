@@ -1,8 +1,8 @@
 import graphene
 from graphene import relay
 
-from ..types import EmpType
-from ..connections import EmpConnection
+from ..types.scott import EmpType
+from ..connections.scott import EmpConnection
 
 __all__ = [
   'EmpQuery'

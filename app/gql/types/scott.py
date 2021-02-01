@@ -1,7 +1,7 @@
 from graphene_sqlalchemy import SQLAlchemyObjectType
 
 from app.models.scott import EmpModel
-from ..nodes import EmpNode
+from ..nodes.scott import EmpNode
 
 __all__ = [
   'EmpType'

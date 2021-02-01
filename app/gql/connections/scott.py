@@ -1,5 +1,5 @@
 from .base import BaseConnection
-from ..types import EmpType
+from ..types.scott import EmpType
 
 __all__ = [
   'EmpConnection'

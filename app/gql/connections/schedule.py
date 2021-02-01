@@ -1,5 +1,5 @@
 from .base import BaseConnection
-from ..types import (
+from ..types.schedule import (
   DateScheduleType,
   IntervalScheduleType,
   CrontabScheduleType,

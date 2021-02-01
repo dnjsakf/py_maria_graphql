@@ -14,6 +14,7 @@ export const CREATE_SCHEDULE = gql`
     $seconds: Int
     $startDate: String
     $endDate: String
+    $crontab: String
   ) {
     createSchedule (
       input: {
@@ -34,6 +35,9 @@ export const CREATE_SCHEDULE = gql`
         startDate: $startDate
         endDate: $endDate
       }
+      crontab: {
+        crontab: $crontab
+      }
     ) {
       success
       schedule {
@@ -41,23 +45,51 @@ export const CREATE_SCHEDULE = gql`
         schdType
         schdStatus
         date {
-          datetime
-          date
-          time
+          edges {
+            node {
+              datetime
+              date
+              time
+            }
+          }
         }
         interval {
-          weeks
-          days
-          hours
-          minutes
-          seconds
-          startDate
-          endDate
+          edges {
+            node {
+              weeks
+              days
+              hours
+              minutes
+              seconds
+              startDate
+              endDate
+            }
+          }
         }
         crontab {
-          crontab
+          edges {
+            node {
+              crontab
+            }
+          }
         }
       }
+    }
+  }
+`;
+
+
+export const DELETE_SCHEDULE = gql`
+  mutation DeleteSchedule (
+    $schdIds: [String]!
+  ) {
+    deleteSchedule (
+      input: {
+        schdIds: $schdIds
+      }
+    ) {
+      deleted
+      success
     }
   }
 `;

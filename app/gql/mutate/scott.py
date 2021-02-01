@@ -1,7 +1,7 @@
 import graphene
 
 from .base import input_to_dictionary
-from ..types import EmpType
+from ..types.scott import EmpType
 
 __all__ = [
   'EmpMutation'

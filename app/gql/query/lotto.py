@@ -7,8 +7,8 @@ from app.database import session
 
 from graphene_sqlalchemy import SQLAlchemyConnectionField
 
-from ..types import LottoPrzwinType
-from ..connections import (
+from ..types.lotto import LottoPrzwinType
+from ..connections.lotto import (
   LottoPrzwinConnection
 )
 
@@ -22,12 +22,12 @@ class InputPagination(graphene.InputObjectType):
   
 class LottoQuery(graphene.ObjectType):
   total_count = graphene.Field(graphene.Int)
-  rows = graphene.List(
+  przwin_list = graphene.List(
     LottoPrzwinType,
     pagination=InputPagination()
   )
 
-  przwin_list = graphene.List(
+  przwin_list_page = graphene.List(
     LottoPrzwinType,
     pagination=InputPagination()
   )
@@ -36,14 +36,13 @@ class LottoQuery(graphene.ObjectType):
   def resolve_total_count(root, info):
     return LottoPrzwinType.get_query(info).count()
 
-  def resolve_rows(root, info, pagination=None):
+  def resolve_przwin_list(root, info, pagination=None):
     Model = LottoPrzwinType._meta.model
     query = LottoPrzwinType.get_query(info)
 
     return query.order_by(desc(Model.drwt_no)).all()
 
-  def resolve_przwin_list(root, info, pagination=None):
-    print( pagination )
+  def resolve_przwin_list_page(root, info, pagination=None):
     page = int(pagination.get("page"))
     rows_per_page = int(pagination.get("rows_per_page"))
 
