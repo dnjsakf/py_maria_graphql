@@ -1,6 +1,5 @@
 import gql from 'graphql-tag';
 
-
 export const CREATE_CODE_TYPE = gql`
   mutation CreateCodeType (
     $codeTypeId: String!
@@ -10,7 +9,7 @@ export const CREATE_CODE_TYPE = gql`
     $sortOrder: Int
     $codes: [CodeInput]
   ) {
-    createParentCode (
+    createCodeType (
       input: {
         codeTypeId: $codeTypeId
         codeTypeNm: $codeTypeNm
@@ -54,7 +53,7 @@ export const UPDATE_CODE_TYPE = gql`
     $sortOrder: Int
     $codes: [CodeInput]
   ) {
-    updateParentCode (
+    updateCodeType (
       input: {
         codeTypeId: $codeTypeId
         codeTypeNm: $codeTypeNm
@@ -85,6 +84,38 @@ export const UPDATE_CODE_TYPE = gql`
           }
         }
       }
+    }
+  }
+`;
+
+export const UPDATE_CODE_TYPE_USE_YN = gql`
+  mutation UpdateCodeTypeUseYn (
+    $codeTypeId: String!
+    $useYn: String!
+  ) {
+    updateCodeTypeUseYn (
+      input: {
+        codeTypeId: $codeTypeId
+        useYn: $useYn
+      }
+    ) {
+      success
+      updateCount
+    }
+  }
+`
+
+export const DELETE_CODE_TYPE = gql`
+  mutation DeleteCodeType (
+    $codeTypeId: String!
+  ) {
+    deleteCodeType (
+      input: {
+        codeTypeId: $codeTypeId
+      }
+    ) {
+      success
+      deleteCount
     }
   }
 `;

@@ -18,17 +18,15 @@ import { CircularSuspense } from '@components/Suspense';
 /* Layout Components */
 // import Header from './Header';
 // import Section from './Section';
-// import Footer from './Footer';
 // import SideBar from './SideBar';
 
 const Header = React.lazy(()=>import("./Header"));
 const Section = React.lazy(()=>import("./Section"));
-const Footer = React.lazy(()=>import("./Footer"));
 const SideBar = React.lazy(()=>import("./SideBar"));
 
 /* Styled Components */
 const Container = styled.div`
-  height: 100%;
+  height: calc( 100% - ${({ desktop })=>( desktop ? 64 : 56 )} );;
   padding-top: ${({ desktop })=>( desktop ? 64 : 56 )}px;
   ${({ desktop })=>( desktop && "padding-left: 240px" )}
 `;
@@ -68,7 +66,6 @@ const MainLayout = ( props )=>{
           <Section>
             { children }
           </Section>
-          {/* <Footer /> */}
         </Container>
       </CircularSuspense>
     </ErrorBoundary>

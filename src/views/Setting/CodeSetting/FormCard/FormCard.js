@@ -5,21 +5,11 @@ import PropTypes from 'prop-types';
 /* GraphQL */
 import client from '@graphql/client';
 import { useMutation } from '@apollo/react-hooks';
-import { UPDATE_CODE_TYPE } from '@graphql/mutation/common';
-
-/* Material-UI */
-import { makeStyles } from '@material-ui/core/styles';
-import CardHeader from '@material-ui/core/CardHeader';
-import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
-import Button from '@material-ui/core/Button';
-import FormControl from '@material-ui/core/FormControl';
-import TextField from '@material-ui/core/TextField';
-import Avatar from '@material-ui/core/Avatar';
-import Switch from '@material-ui/core/Switch';
-import Paper  from '@material-ui/core/Paper';
-import Collapse  from '@material-ui/core/Collapse';
+import {
+  UPDATE_CODE_TYPE,
+  DELETE_CODE_TYPE,
+  UPDATE_CODE_TYPE_USE_YN
+} from '@graphql/mutation/common';
 
 /* Formik */
 import { useFormik } from 'formik';
@@ -27,10 +17,29 @@ import { useFormik } from 'formik';
 /* Yup */
 import * as Yup from 'yup';
 
+/* Material-UI */
+import styled from 'styled-components';
+
+/* Material-UI */
+import { useTheme, makeStyles } from '@material-ui/core/styles';
+import CardHeader from '@material-ui/core/CardHeader';
+import Card from '@material-ui/core/Card';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
+import FormControl from '@material-ui/core/FormControl';
+import TextField from '@material-ui/core/TextField';
+import Avatar from '@material-ui/core/Avatar';
+import Switch from '@material-ui/core/Switch';
+import Collapse  from '@material-ui/core/Collapse';
+import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import DeleteIcon from '@material-ui/icons/Delete';
+import AutorenewIcon from '@material-ui/icons/Autorenew';
+import SaveIcon from '@material-ui/icons/Save';
+
 /* Custom Components */
-import { SelectedToolBar } from '@components/ToolBar';
-import { CheckableTable } from '@components/Table';
-import { FormDialog } from '@components/Dialog';
+import { GridRow, GridColumn } from '@components/Grid';
+import { FormTable } from '@components/Table';
 
 /* Material-UI Hook */
 const useStyles = makeStyles((theme)=>({
@@ -55,8 +64,23 @@ const useStyles = makeStyles((theme)=>({
   },
   actions: {
     justifyContent: "space-around",
+  },
+  right: {
+    textAlight: "right",
   }
 }));
+
+/* Styled Components */
+const StatusIconButton = styled(IconButton)`
+  ${({ theme, status })=>`
+    color: ${ theme.palette[status||"primary"].contrastText };
+    background-color: ${ theme.palette[status||"primary"].main };
+    &:hover {
+      font-size: 100px;
+      background-color: ${ theme.palette[status||"primary"].dark };
+    }
+  `}
+`;
 
 /* Main Component */
 const FormCard = props =>{
@@ -67,16 +91,34 @@ const FormCard = props =>{
     codeTypeId,
     codeTypeNm,
     codeTypeDesc,
-    useYn: codeTypeUseYn,
+    useYn,
     sortOrder,
     codes,
     refetch,
     ...rest
   } = props;
 
+  /* Material-UI Hook */
+  const classes = useStyles();
+
   /* State */
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState([]);
+  const [rows , setRows] = useState(codes);
+  const [toggle, setToggle] = useState(useYn=="Y");
+  const [initValues, setInitValues] = useState({
+    codeTypeId: codeTypeId||"",
+    codeTypeNm: codeTypeNm||"",
+    codeTypeDesc: codeTypeDesc||"",
+    useYn: useYn,
+    sortOrder: sortOrder||0,
+    codes: codes.map( node => ({
+      codeId: node.codeId||"",
+      codeNm: node.codeNm||"",
+      codeDesc: node.codeDesc||"",
+      useYn: node.useYn||"N",
+      sortOrder: node.sortOrder||0,
+    }))
+  });
 
   /* GraphQL */
   const [ updateCodeType, { loading: updateLoading } ] = useMutation(
@@ -85,73 +127,135 @@ const FormCard = props =>{
     onError(error){
       console.error( error );
     },
-    onCompleted({ updateParentCode: { codeType, success } }){
-      console.log( codeType, success );
+    onCompleted({ updateCodeType: { codeType, success } }){
+      const newRows = codeType.code.edges.map(({ node })=>({
+        codeId: node.codeId,
+        codeNm: node.codeNm,
+        codeDesc: node.codeDesc,
+        useYn: node.useYn,
+        sortOrder: node.sortOrder,
+      }));
+
+      setInitValues({
+        codeTypeId: codeType.codeTypeId||"",
+        codeTypeNm: codeType.codeTypeNm||"",
+        codeTypeDesc: codeType.codeTypeDesc||"",
+        useYn: codeType.useYn,
+        sortOrder: codeType.sortOrder||0,
+        codes: newRows
+      });
+
+      refetch();
+      setOpen(false);
+    }
+  });
+  const [ updateCodeTypeUseYn, { loading: updateUseYnLoading } ] = useMutation(
+    UPDATE_CODE_TYPE_USE_YN, {
+    client,
+    onError(error){
+      console.error( error );
+    },
+    onCompleted({ updateCodeTypeUseYn: { updateCount, success } }){
+      console.log(updateCount, success );
+    }
+  });
+
+  const [ deleteCodeType, { loading: deleteLoading } ] = useMutation(
+    DELETE_CODE_TYPE, {
+    client,
+    onError(error){
+      console.error( error );
+    },
+    onCompleted({ deleteCodeType: { deleteCount, success } }){
+      console.log( deleteCount, success );
       // setOpen(false);
+      // refetch();
+
       refetch();
     }
   });
 
   /* Formik */
   const formik = useFormik({
-    initialValues: {
-      codeTypeId,
-      codeTypeNm,
-      codeTypeDesc,
-      useYn: codeTypeUseYn=="Y",
-      sortOrder,
-      codes
-    },
+    initialValues: initValues,
     validationSchema: Yup.object().shape({
       codeTypeId: Yup.string()
         .required('Required'),
-      codeTypeNm: Yup.string(),
+      codeTypeNm: Yup.string()
+        .required('Required'),
       codeTypeDesc: Yup.string(),
-      useYn: Yup.bool(),
+      useYn: Yup.string()
+        .oneOf(["Y","N"]),
       sortOrder: Yup.number(),
       codes: Yup.array(),
     }),
     onSubmit(values) {
-      updateCodeType({
+      const options = {
         variables: {
           codeTypeId: values.codeTypeId,
           codeTypeNm: values.codeTypeNm,
           codeTypeDesc: values.codeTypeDesc,
-          useYn: values.useYn ? "Y":"N",
+          useYn: values.useYn,
           sortOrder: values.sortOrder,
-          codes: values.codes.map((code)=>({
-            codeId: code.codeId,
-            codeNm: code.codeNm,
-            codeDesc: code.codeDesc,
-            useYn: code.useYn,
-            sortOrder: code.sortOrder,
+          codes: rows.map((node)=>({
+            codeId: node.codeId,
+            codeNm: node.codeNm,
+            codeDesc: node.codeDesc,
+            useYn: node.useYn || "Y",
+            sortOrder: node.sortOrder
           }))
         }
-      });
+      }
+      updateCodeType(options);
     }
   });
 
-  /* Material-UI Hook */
-  const classes = useStyles();
-
-  /* Handler: Delete child codes. */
-  const handleDeleteCode = useCallback((e, s)=>{
-    console.log(codeTypeId, s);
-  },[]);
-
   /* Handler: Toggle expand. */
   const handleToggleCollapse = useCallback((e)=>{
+    if( open ){
+      handleReset();
+    }
     setOpen(!open);
-  },[open]);
+  },[initValues, open]);
 
   /* Handler: Reset variables. */
   const handleReset = useCallback((e)=>{
-    formik.setValues(formik.initialValues);
+    setRows(initValues.codes);
+    formik.setValues(initValues);
+  },[initValues]);
+
+  /* Handler: Delete code type. */
+  const handleDelete = useCallback((e)=>{
+    deleteCodeType({
+      variables: {
+        codeTypeId
+      }
+    })
   },[]);
+
+  /* Handler: Switching useYn */
+  const handleSwitchUseYn = useCallback((e)=>{
+    const afterToggle = !toggle;
+    const afterUseYn = afterToggle ? "Y": "N";
+    handleReset();
+    setToggle(afterToggle);
+    
+    updateCodeTypeUseYn({
+      variables: {
+        codeTypeId: codeTypeId,
+        useYn: afterUseYn
+      }
+    });
+    formik.setValues({
+      ...formik.values,
+      useYn: afterUseYn
+    });
+    // formik.submitForm();
+  }, [toggle, initValues]);
 
   /* Rendering */
   return (
-    <Card className={classes.root}>
+    <Card className={ classes.root }>
       <form onSubmit={ formik.handleSubmit } noValidate>
         <CardHeader
           className={ classes.header }
@@ -162,8 +266,8 @@ const FormCard = props =>{
           }
           action={
             <Switch
-              checked={ formik.values.useYn }
-              onChange={ formik.handleChange }
+              checked={ toggle }
+              onChange={ handleSwitchUseYn }
               name="useYn"
               inputProps={{ 'aria-label': 'secondary checkbox' }}
             />
@@ -181,72 +285,76 @@ const FormCard = props =>{
         />
         <Collapse in={open} timeout="auto" unmountOnExit>
           <CardContent className={ classes.content }>
-            <FormControl className={ classes.pos } fullWidth>
-              <TextField
-                type="text"
-                label="코드타입명"
-                name="codeTypeNm"
-                value={ formik.values.codeTypeNm }
-                onChange={ formik.handleChange }
-              />
-            </FormControl>
-            <FormControl className={ classes.pos } fullWidth>
-              <TextField
-                type="text"
-                label="설명"
-                name="codeTypeDesc"
-                value={ formik.values.codeTypeDesc }
-                onChange={ formik.handleChange }
-                rowsMax={3}
-                multiline
-              />
-            </FormControl>
-            <FormControl className={ classes.pos } fullWidth>
-              <TextField
-                type="number"
-                label="정렬순서"
-                name="sortOrder"
-                value={ formik.values.sortOrder }
-                onChange={ formik.handleChange }
-              />
-            </FormControl>
-            <Paper>
-              <SelectedToolBar
-                title="Codes"
-                selected={ selected }
-                selectTools={{
-                  delete: {
-                    tooltip: "Delete codes.",
-                    icon: "delete",
-                    onClick: handleDeleteCode,
-                  }
-                }}
-                tools={{
-                  added: {
-                    tooltip: "Added codes.",
-                    icon: "add_box",
-                    onClick: handleDeleteCode,
-                  }
-                }}
-              />
-              <CheckableTable
-                title="Codes"
-                dataKey="codeId"
-                columns={[
-                  { id: "codeId", label: "ID", align: "left", width: "25%"},
-                  { id: "codeNm", label: "Name", align: "center", width: "35%"},
-                  { id: "codeDesc", label: "Desc", align: "left", width: "40%"},
-                  { id: "sortOrder", label: "sortOrder", align: "left", width: "40%"},
-                ]}
-                rows={ codes }
-                selected={ selected }
-                onSelected={ setSelected }
-              />
-            </Paper>
+            <GridRow>
+              <GridColumn xs={4}>
+                <FormControl className={ classes.pos } fullWidth>
+                  <TextField
+                    type="number"
+                    label="정렬순서"
+                    name="sortOrder"
+                    value={ formik.values.sortOrder }
+                    onChange={ formik.handleChange }
+                    InputProps={{
+                      classes: {
+                        input: classes.right
+                      }
+                    }}
+                  />
+                </FormControl>
+              </GridColumn>
+              <GridColumn xs={8}>
+                <FormControl className={ classes.pos } fullWidth>
+                <TextField
+                  type="text"
+                  label="코드타입명"
+                  name="codeTypeNm"
+                  value={ formik.values.codeTypeNm }
+                  onChange={ formik.handleChange }
+                />
+              </FormControl>
+              </GridColumn>
+            </GridRow>
+            <GridRow>
+              <GridColumn xs={12}>
+                <FormControl className={ classes.pos } fullWidth>
+                  <TextField
+                    type="text"
+                    label="설명"
+                    name="codeTypeDesc"
+                    value={ formik.values.codeTypeDesc }
+                    onChange={ formik.handleChange }
+                    rowsMax={3}
+                    multiline
+                  />
+                </FormControl>
+              </GridColumn>
+            </GridRow>
+            <GridRow>
+              <GridColumn xs={12}>
+                <FormTable
+                  title="Codes"
+                  columns={[
+                    { type: "text", name: "codeId", label: "코드ID", align: "left" },
+                    { type: "text", name: "codeNm", label: "코드명", align: "left" },
+                    { type: "text", name: "codeDesc", label: "설명", align: "left" },
+                    { type: "number", name: "sortOrder", label: "정렬순서", align: "right" },
+                  ]}
+                  rows={ rows }
+                  setRows={ setRows }
+                />
+              </GridColumn>
+            </GridRow>
           </CardContent>
           <CardActions className={ classes.actions }>
-            <Button size="small" onClick={ handleReset } color="primary">Reset</Button>
-            <Button size="small" type="submit" color="primary">Save</Button>
+            <StatusIconButton size="small" onClick={ handleDelete } status="error">
+              <DeleteIcon />
+            </StatusIconButton>
+            <StatusIconButton size="small" onClick={ handleReset } status="warning">
+              <AutorenewIcon />
+            </StatusIconButton>
+            <StatusIconButton size="small" type="submit" status="primary">
+              <SaveIcon />
+            </StatusIconButton>
           </CardActions>
         </Collapse>
       </form>

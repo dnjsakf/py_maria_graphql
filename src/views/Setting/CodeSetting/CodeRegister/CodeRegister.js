@@ -44,15 +44,9 @@ const useStyles = makeStyles((theme)=>({
   center: {
     textAlign: "center"
   },
-  buttonGroup: {
-    marginBottom: theme.spacing(1),
-  },
-  buttonDelete: {
-    color: blueGrey[600]
-  },
-  buttonSave: {
-    color: blue[600]
-  },
+  right: {
+    textAlign: "right"
+  }
 }));
 
 /* Main Component */
@@ -62,6 +56,7 @@ const CodeRegister = props =>{
     className,
     open,
     onClose,
+    onRefetch,
     ...rest
   } = props;
 
@@ -81,10 +76,11 @@ const CodeRegister = props =>{
       },
       onCompleted({ createCodeType: { codeType, success } }) {
         console.log({
-          schedule,
+          codeType,
           success
         });
-        onClose(null, true);
+        onClose();
+        onRefetch();
       }
     }
   );
@@ -102,7 +98,8 @@ const CodeRegister = props =>{
     validationSchema: Yup.object().shape({
       codeTypeId: Yup.string()
         .required('Required'),
-      codeTypeNm: Yup.string(),
+      codeTypeNm: Yup.string()
+        .required('Required'),
       codeTypeDesc: Yup.string(),
       useYn: Yup.string().oneOf(["Y","N"]),
       sortOrder: Yup.number(),
@@ -140,13 +137,38 @@ const CodeRegister = props =>{
       noValidate
     >
       <GridRow padding={ theme.spacing(2) }>
-        <GridColumn xs={ 6 }>
+        <GridColumn xs={ 3 }>
+          <FormControl fullWidth required>
+            <TextField
+              fullWidth
+              type="number"
+              label="정렬순서"
+              name="sortOrder"
+              value={ formik.values.sortOrder }
+              error={ !!formik.errors.sortOrder }
+              InputLabelProps={{
+                shrink: true,
+              }}
+              InputProps={{
+                onChange: formik.handleChange,
+                classes: {
+                  input: classes.right
+                }
+              }}
+            />
+            {formik.errors.sortOrder && (
+              <FormHelperText>{ formik.errors.sortOrder }</FormHelperText>
+            )}
+          </FormControl>
+        </GridColumn>
+        <GridColumn xs={ 4 }>
           <FormControl fullWidth required>
             <TextField
               fullWidth
               type="text"
-              label="Code Type ID"
+              label="코드타입ID"
               name="codeTypeId"
+              value={ formik.values.codeTypeId }
               error={ !!formik.errors.codeTypeId }
               InputLabelProps={{
                 shrink: true,
@@ -158,19 +180,21 @@ const CodeRegister = props =>{
                 maxLength: 30,
                 required: true,
               }}
+              autoFocus
             />
             {formik.errors.codeTypeId && (
               <FormHelperText>{ formik.errors.codeTypeId }</FormHelperText>
             )}
           </FormControl>
         </GridColumn>
-        <GridColumn xs={ 6 }>
+        <GridColumn xs={ 5 }>
           <FormControl fullWidth required>
             <TextField
               fullWidth
               type="text"
-              label="Code Type Name"
+              label="코드타입명"
               name="codeTypeNm"
+              value={ formik.values.codeTypeNm }
               error={ !!formik.errors.codeTypeNm }
               InputLabelProps={{
                 shrink: true,
@@ -195,8 +219,9 @@ const CodeRegister = props =>{
             <TextField
               fullWidth
               type="text"
-              label="Code Type Description"
+              label="설명"
               name="codeTypeDesc"
+              value={ formik.errors.codeTypeDesc }
               error={ !!formik.errors.codeTypeDesc }
               InputLabelProps={{
                 shrink: true,
@@ -218,52 +243,13 @@ const CodeRegister = props =>{
         </GridColumn>
       </GridRow>
       <GridRow padding={ theme.spacing(2) }>
-        <GridColumn xs={ 6 }>
-          <FormControl fullWidth required>
-            <FormLabel component="legend">사용여부</FormLabel>
-            <RadioGroup row
-              aria-label="useYn"
-              name="useYn" 
-              value={ formik.values.useYn }
-              onChange={ formik.handleChange }
-            >
-              <FormControlLabel control={ <Radio /> } value="Y" label="사용" />
-              <FormControlLabel control={ <Radio /> } value="N" label="미사용" />
-            </RadioGroup>
-            {formik.errors.useYn && (
-              <FormHelperText>{ formik.errors.useYn }</FormHelperText>
-            )}
-          </FormControl>
-        </GridColumn>
-        <GridColumn xs={ 6 }>
-          <FormControl fullWidth required>
-            <TextField
-              fullWidth
-              type="number"
-              label="정렬순서"
-              name="sortOrder"
-              error={ !!formik.errors.sortOrder }
-              InputLabelProps={{
-                shrink: true,
-              }}
-              InputProps={{
-                onChange: formik.handleChange,
-              }}
-            />
-            {formik.errors.sortOrder && (
-              <FormHelperText>{ formik.errors.sortOrder }</FormHelperText>
-            )}
-          </FormControl>
-        </GridColumn>
-      </GridRow>
-      <GridRow padding={ theme.spacing(2) }>
         <GridColumn xs={ 12 }>
           <FormTable
             title="Codes"
             columns={[
-              { type: "text", name: "codeId", label: "코드ID", align: "center" },
-              { type: "text", name: "codeNm", label: "코드명", align: "center" },
-              { type: "text", name: "codeDesc", label: "설명", align: "center" },
+              { type: "text", name: "codeId", label: "코드ID", align: "left" },
+              { type: "text", name: "codeNm", label: "코드명", align: "left" },
+              { type: "text", name: "codeDesc", label: "설명", align: "left" },
               { type: "number", name: "sortOrder", label: "정렬순서", align: "right" },
             ]}
             rows={ codes }

@@ -60,7 +60,7 @@ const StatusButton = styled(Button)`
   ${({ theme, status })=>`
     color: ${ theme.palette[status||"primary"].contrastText };
     background-color: ${ theme.palette[status||"primary"].main };
-    &:hover: {
+    &:hover {
       background-color: ${ theme.palette[status||"primary"].dark };
     }
   `}

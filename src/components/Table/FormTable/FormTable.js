@@ -24,6 +24,11 @@ import FormControl from '@material-ui/core/FormControl';
 import TextField from '@material-ui/core/TextField';
 import { ActionToolBar } from '@src/components/ToolBar';
 
+/* Clsx */
+import clsx from 'clsx';
+
+/* Functions */
+import { uuid4 } from '@src/App';
 
 /* Styles Hook */
 const useStyles = makeStyles((theme)=>({
@@ -33,6 +38,20 @@ const useStyles = makeStyles((theme)=>({
   container: {
     maxHeight: 440,
   },
+  input: {
+    padding: theme.spacing(1)
+  },
+  center: {
+    textAlign: "center",
+  },
+  right: {
+    textAlign: "right",
+  },
+  btnCell: {
+    padding: theme.spacing(1)
+  },
+  th: { },
+  td: { }
 }));
 
 
@@ -40,6 +59,7 @@ const useStyles = makeStyles((theme)=>({
 const FormTableHead = props => {
   /* Props */
   const {
+    classes,
     columns,
     ...rest
   } = props;
@@ -48,10 +68,14 @@ const FormTableHead = props => {
   return (
     <TableHead>
       <TableRow>
-        <TableCell style={{ width: "5%" }}></TableCell>
+        <TableCell className={ classes.btnCell } padding="none"></TableCell>
         {columns.map(( column )=>{
           return (
-            <TableCell key={ "form-table-header-"+column.name } style={{ width: column.width }}>
+            <TableCell
+              key={ "form-table-header-"+column.name }
+              className={ classes.th } 
+              style={{ width: column.width }}
+            >
               { column.label }
             </TableCell>
           );
@@ -64,8 +88,11 @@ const FormTableHead = props => {
 const FormTableRow = props => {
   /* Props */
   const {
+    classes,
     rowId,
     columns,
+    format,
+    data,
     onSave,
     onRemove,
     ...rest
@@ -75,34 +102,39 @@ const FormTableRow = props => {
   const formik = useFormik({
     initialValues: (()=>{
       const obj = {}
-      columns.forEach(( column )=>{
-        obj[column.name] = column.type == "text" ? "" : 0;
+      Object.keys(format).forEach(key=>{
+        obj[key] = data[key] || format[key];
       });
       return obj;
     })(),
   });
 
   /* Handler: Save column. */
-  const handleBlur = useCallback(( rowId )=>{
+  const handleBlur = useCallback((e)=>{
     onSave( rowId, formik.values );
-  }, [ formik ]);
+  }, [ rowId, formik ]);
 
   /* Redering */
   return (
     <TableRow>
-      <TableCell>
-        <IconButton size="small" color="primary" onClick={ (e)=>{ onRemove(rowId); } }>
+      <TableCell className={ classes.btnCell } padding="none">
+        <IconButton size="small" color="primary" onClick={ (e)=>onRemove(rowId) }>
           <RemoveCircle />
         </IconButton>
       </TableCell>
       {columns.map(( column )=>{
         const value = formik.values[column.name];
         return (
-          <TableCell key={ "form-table-body-"+column.name }>
+          <TableCell
+            key={ "form-table-body-"+column.name }
+            className={ classes.td }
+            padding="none"
+          >
             <FormControl
               align={ column.align||"left" }
               style={{ width: column.width }}
               fullWidth
+              required
             >
               <TextField 
                 fullWidth
@@ -110,7 +142,17 @@ const FormTableRow = props => {
                 name={ column.name }
                 value={ value }
                 onChange={ formik.handleChange }
-                onBlur={ (e)=>{ handleBlur(rowId); } }
+                onBlur={ handleBlur }
+                variant="outlined"
+                InputProps={{
+                  classes: {
+                    input: clsx({
+                      [classes.input]: true,
+                      [classes.right]: column.align == "right",
+                      [classes.center]: column.align == "center"
+                    })
+                  }
+                }}
               />
             </FormControl>
           </TableCell>
@@ -134,28 +176,28 @@ const FormTable = props =>{
 
   /* Material-UI Hook */
   const classes = useStyles();
-
-  /* State */
-  // const [rows, setRows] = useState(data);
+  const [format, setFormat] = useState(()=>{
+    const obj = {}
+    columns.forEach(( column )=>{
+      obj[column.name] = column.type == "text" ? "" : 0;
+    });
+    return obj;
+  });
   
   /* Handler: Add row. */
   const handleAddRow = useCallback((e)=>{
-    setRows([...rows, {}]);
+    setRows([...rows, { id: uuid4(), ...format }]);
   },[ rows ]);
 
   /* Handler: Save row data. */
   const handleSaveRowData = useCallback((id, data)=>{
-    setRows([...rows.filter((_, idx)=>(idx != id)), data]);
+    setRows([...rows.map((row)=>(row.id == id ? data : row))]);
   }, [ rows ]);
 
   /* Handler: Remove row data. */
   const handleRemoveRowData = useCallback(( id )=>{
-    setRows(rows.filter((data, idx)=>(idx != id)));
+    setRows(rows.filter((row)=>(row.id != id)));
   }, [ rows ]);
-
-  useEffect(()=>{
-    console.log( rows );
-  },[ rows ]);
 
   /* Rendering */
   return (
@@ -176,17 +218,25 @@ const FormTable = props =>{
           aria-label="sticky table"
           size="small"
         > 
-          <FormTableHead columns={ columns }/>
+          <FormTableHead classes={ classes } columns={ columns }/>
           <TableBody>
-          {rows.map((row, idx)=>(
-            <FormTableRow
-              key={ "form-table-body-"+idx }
-              rowId={ idx }
-              columns={ columns }
-              onSave={ handleSaveRowData }
-              onRemove={ handleRemoveRowData }
-            />
-          ))}
+          {rows.map((row)=>{
+            const rowId = uuid4();
+            row.id = rowId;
+
+            return (
+              <FormTableRow
+                classes={ classes }
+                key={ "form-table-body-"+rowId }
+                data={ row }
+                rowId={ rowId }
+                columns={ columns }
+                format={ format }
+                onSave={ handleSaveRowData }
+                onRemove={ handleRemoveRowData }
+              />
+            );
+          })}
           </TableBody>
         </Table>
       </TableContainer>

@@ -11,12 +11,16 @@ from ..database.base import Base
 class MT_CODE_TYPE_MST(Base):
   __tablename__ = "MT_CODE_TYPE_MST"
   __table_args__ = (
+    PrimaryKeyConstraint(
+      *("code_type_id",),
+      name="PK_MT_CODE_TYPE_MST"
+    ),
     dict(
       comment="코드_그룹_마스터"
     )
   )
 
-  code_type_id        = Column(String(30), primary_key=True, comment="코드타입ID")
+  code_type_id        = Column(String(30), comment="코드타입ID")
   code_type_nm        = Column(String(30), comment="코드타입명")
   code_type_desc      = Column(String(100), comment="코드타입설명")
 
@@ -37,14 +41,22 @@ class MT_CODE_TYPE_MST(Base):
 class MT_CODE_MST(Base):
   __tablename__ = "MT_CODE_MST"
   __table_args__ = (
-    PrimaryKeyConstraint("code_id"),
+    PrimaryKeyConstraint(
+      *("code_type_id", "code_id"),
+      name="PK_MT_CODE_MST"
+    ),
+    ForeignKeyConstraint(
+      ["code_type_id"],
+      ["MT_CODE_TYPE_MST.code_type_id"],
+      name="FK_MT_CODE_MST"
+    ),
     dict(
       comment="코드_마스터"
     )
   )
 
-  code_type_id        = Column(String(50), ForeignKey("MT_CODE_TYPE_MST.code_type_id"), nullable=True)
-  code_id             = Column(String(30), primary_key=True, comment="코드ID")
+  code_type_id        = Column(String(50), comment="코드타입ID")
+  code_id             = Column(String(30), comment="코드ID")
   code_nm             = Column(String(30), comment="코드명")
   code_desc           = Column(String(30), comment="코드설명")
 

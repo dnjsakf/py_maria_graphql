@@ -16,6 +16,7 @@ import { ResizeContext } from '@src/App';
 /* Child Components */
 import Profile from './Profile';
 import SidebarNav from './SidebarNav';
+import Footer from './../Footer';
 
 /* Styles Hook */
 const useStyles = makeStyles( theme => ({
@@ -24,6 +25,9 @@ const useStyles = makeStyles( theme => ({
     [theme.breakpoints.up('lg')]: {
       marginTop: 64,
       height: 'calc(100% - 64px)'
+    },
+    "&::-webkit-scrollbar": {
+      display: "none",
     }
   },
   divider: {
@@ -82,6 +86,7 @@ const SideBar = props => {
         <Divider className={ classes.divider } />
         <SidebarNav />
       </Container>
+      <Footer/>
     </Drawer>
   );
 }

@@ -141,33 +141,61 @@ def init_db():
     reg_user="admin",
     reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
   )
-  schd_type.code.append(MT_CODE_MST(
-    code_id="date",
-    code_nm="일회성",
-    code_desc="한번만 실행",
-    use_yn="Y",
-    sort_order=1000,
-    reg_user="admin",
-    reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
-  ))
-  schd_type.code.append(MT_CODE_MST(
-    code_id="interval",
-    code_nm="주기성",
-    code_desc="주기성",
-    use_yn="Y",
-    sort_order=2000,
-    reg_user="admin",
-    reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
-  ))
-  schd_type.code.append(MT_CODE_MST(
-    code_id="crontab",
-    code_nm="크론탭",
-    code_desc="크론탭",
-    use_yn="Y",
-    sort_order=3000,
-    reg_user="admin",
-    reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
-  ))
+  session.merge(
+    MT_CODE_MST(
+      code_type_id="schd_type",
+      code_id="date",
+      code_nm="일회성",
+      code_desc="한번만 실행",
+      use_yn="Y",
+      sort_order=1000,
+      reg_user="admin",
+      reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+    )
+  )
+  session.merge(
+    MT_CODE_MST(
+      code_type_id="schd_type",
+      code_id="interval",
+      code_nm="주기성",
+      code_desc="주기성",
+      use_yn="Y",
+      sort_order=2000,
+      reg_user="admin",
+      reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+    )
+  )
+  session.merge(
+    MT_CODE_MST(
+      code_type_id="schd_type",
+      code_id="crontab",
+      code_nm="크론탭",
+      code_desc="크론탭",
+      use_yn="Y",
+      sort_order=3000,
+      reg_user="admin",
+      reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+    )
+  )
+
+  # schd_type.code.append(MT_CODE_MST(
+  #   code_id="interval",
+  #   code_nm="주기성",
+  #   code_desc="주기성",
+  #   use_yn="Y",
+  #   sort_order=2000,
+  #   reg_user="admin",
+  #   reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+  # ))
+  # schd_type.code.append(MT_CODE_MST(
+  #   code_id="crontab",
+  #   code_nm="크론탭",
+  #   code_desc="크론탭",
+  #   use_yn="Y",
+  #   sort_order=3000,
+  #   reg_user="admin",
+  #   reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+  # ))
   session.merge(schd_type)
   session.commit()
   
