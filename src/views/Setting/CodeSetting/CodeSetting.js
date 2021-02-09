@@ -3,7 +3,7 @@ import React, { useCallback, useState, useContext } from 'react';
 
 /* GraphQL */
 import client from '@graphql/client';
-import { useQuery, useMutation } from '@apollo/react-hooks';
+import { useQuery } from '@apollo/react-hooks';
 import { CODE_TYPE_QUERY } from '@graphql/query/common';
 
 /*  Material-UI*/
@@ -59,11 +59,7 @@ const CodeSetting = props =>{
   }, []);
 
   /* Handler: Close dialog. */
-  const handleCloseDialog = useCallback((e, refetcing)=>{
-    // Paper에서 호출할 경우, 오류가 발생함
-    // if( refetcing == true ){
-    //   refetch();
-    // }
+  const handleCloseDialog = useCallback((e)=>{
     setOpenDialog(false);
   }, []);
 

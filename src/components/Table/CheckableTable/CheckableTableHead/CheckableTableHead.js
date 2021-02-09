@@ -66,22 +66,22 @@ const CheckableTableHead = props => {
         )}
         {columns.map((column, idx) => (
           <TableCell
-            key={ column.id }
+            key={ "table-checkable-head-col-"+column.name }
             align={ column.align }
             padding={ column.disablePadding ? 'none' : 'default' }
-            sortDirection={orderBy === column.id ? order : false}
+            sortDirection={orderBy === column.name ? order : false}
             style={{
               minWidth: column.minWidth,
               width: column.width
             }}
             >
             <TableSortLabel
-              active={orderBy === column.id}
-              direction={orderBy === column.id ? order : 'asc'}
-              onClick={ createSortHandler(column.id) }
+              active={orderBy === column.name}
+              direction={orderBy === column.name ? order : 'asc'}
+              onClick={ createSortHandler(column.name) }
             >
               { column.label }
-              {orderBy === column.id ? (
+              {orderBy === column.name ? (
                 <span className={ classes.visuallyHidden }>
                   {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
                 </span>

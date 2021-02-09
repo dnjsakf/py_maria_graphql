@@ -106,7 +106,6 @@ class UpdateParentCode(graphene.Mutation):
     codes = input.get("codes", None)
     if codes is not None:
       for code in codes:
-        print( code )
         child = CodeType._meta.model(**dict(
           code_type_id=input.get("code_type_id"),
           code_id=code.get("code_id"),

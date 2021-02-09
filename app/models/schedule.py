@@ -77,9 +77,9 @@ class WK_SCHD_MST(Base):
     )
   )
 
-  schd_id          = Column(String(50), primary_key=True, comment="스케줄ID")
-  schd_type        = Column(String(10), nullable=False, comment="스케줄타입") # date, interval, crontab
-  schd_status      = Column(Integer, default=1, comment="스케줄상태") # 0:등록, 1:대기, 2:진행중, 3:완료, 9오류
+  schd_id         = Column(String(50), primary_key=True, comment="스케줄ID")
+  schd_type       = Column(String(10), nullable=False, comment="스케줄타입") # date, interval, crontab
+  schd_status     = Column(Integer, default=1, comment="스케줄상태") # 0:등록, 1:대기, 2:진행중, 3:완료, 9오류
   
   exec_msg        = Column(String(500), comment="실행메시지")
 

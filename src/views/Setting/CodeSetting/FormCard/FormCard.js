@@ -40,12 +40,15 @@ import SaveIcon from '@material-ui/icons/Save';
 /* Custom Components */
 import { GridRow, GridColumn } from '@components/Grid';
 import { FormTable } from '@components/Table';
+import { CircularProgress } from '@components/Progress';
 
 /* Material-UI Hook */
 const useStyles = makeStyles((theme)=>({
   root: {
+    // height: "100%",
     minWidth: 275,
     padding: theme.spacing(1),
+    boxSizing: "border-box",
   },
   header: {
     padding: theme.spacing(1),
@@ -145,8 +148,8 @@ const FormCard = props =>{
         codes: newRows
       });
 
-      refetch();
       setOpen(false);
+      refetch();
     }
   });
   const [ updateCodeTypeUseYn, { loading: updateUseYnLoading } ] = useMutation(
@@ -157,6 +160,8 @@ const FormCard = props =>{
     },
     onCompleted({ updateCodeTypeUseYn: { updateCount, success } }){
       console.log(updateCount, success );
+      // refetch();
+      // setOpen(false);
     }
   });
 
@@ -168,11 +173,8 @@ const FormCard = props =>{
     },
     onCompleted({ deleteCodeType: { deleteCount, success } }){
       console.log( deleteCount, success );
-      // setOpen(false);
-      // refetch();
-
       refetch();
-    }
+    },
   });
 
   /* Formik */
@@ -240,15 +242,15 @@ const FormCard = props =>{
     handleReset();
     setToggle(afterToggle);
     
+    formik.setValues({
+      ...formik.values,
+      useYn: afterUseYn
+    });
     updateCodeTypeUseYn({
       variables: {
         codeTypeId: codeTypeId,
         useYn: afterUseYn
       }
-    });
-    formik.setValues({
-      ...formik.values,
-      useYn: afterUseYn
     });
     // formik.submitForm();
   }, [toggle, initValues]);
@@ -265,12 +267,14 @@ const FormCard = props =>{
             </Avatar>
           }
           action={
-            <Switch
+            (updateLoading  || updateUseYnLoading || deleteLoading )
+            ?(<CircularProgress relative />)
+            :(<Switch
               checked={ toggle }
               onChange={ handleSwitchUseYn }
               name="useYn"
               inputProps={{ 'aria-label': 'secondary checkbox' }}
-            />
+            />)
           }
           title={
             <Button
@@ -283,7 +287,7 @@ const FormCard = props =>{
           }
           subheader={ codeTypeId }
         />
-        <Collapse in={open} timeout="auto" unmountOnExit>
+        <Collapse in={open} timeout={ 150 } unmountOnExit>
           <CardContent className={ classes.content }>
             <GridRow>
               <GridColumn xs={4}>
@@ -338,6 +342,7 @@ const FormCard = props =>{
                     { type: "text", name: "codeNm", label: "코드명", align: "left" },
                     { type: "text", name: "codeDesc", label: "설명", align: "left" },
                     { type: "number", name: "sortOrder", label: "정렬순서", align: "right" },
+                    { type: "switch", switch: ["Y","N"], name: "useYn", label: "사용여부", align: "center" },
                   ]}
                   rows={ rows }
                   setRows={ setRows }

@@ -48,7 +48,8 @@ class MT_CODE_MST(Base):
     ForeignKeyConstraint(
       ["code_type_id"],
       ["MT_CODE_TYPE_MST.code_type_id"],
-      name="FK_MT_CODE_MST"
+      name="FK_MT_CODE_MST",
+      ondelete="CASCADE"
     ),
     dict(
       comment="코드_마스터"

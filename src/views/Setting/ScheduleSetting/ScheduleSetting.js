@@ -112,10 +112,10 @@ const ScheduleSetting = props =>{
           <CheckableTable
             dataKey="schdId"
             columns={[
-              { id: "schdType", label: "타입", align: "left", width: "10%"},
-              { id: "schdStatus", label: "상태", align: "center", width: "10%", type: "button", onClick: (e,key)=>{ console.log(key); }},
-              { id: "schdId", label: "ID", align: "left", width: "40%"},
-              { id: "execMessage", label: "메시지", align: "center" },
+              { name: "schdTypeNm", ref: "schdType", label: "타입", align: "left", width: "10%"},
+              { name: "schdStatusNm", ref: "schdStatus", label: "상태", align: "center", width: "10%", type: "status",  onClick: (e,key)=>{ console.log(key); }},
+              { name: "schdId", label: "ID", align: "left", width: "40%"},
+              { name: "execMessage", label: "메시지", align: "center" },
             ]}
             rows={ data ? data.scheduleList : null }
             loading={ loading }

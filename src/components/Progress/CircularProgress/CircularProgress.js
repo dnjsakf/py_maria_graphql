@@ -6,6 +6,7 @@ import { makeStyles } from '@material-ui/core';
 import MuiCircularProgress from '@material-ui/core/CircularProgress';
 // import Box from '@material-ui/core/Box';
 import Container from '@material-ui/core/Container';
+import clsx from 'clsx';
 
 /*
       top={0}
@@ -23,10 +24,13 @@ const useStyles = makeStyles((theme)=>({
   root: {
     width: "100%",
     height: "100%",
-    position: "absolute",
     display: "flex",
+    position: "absolute",
     alignItems: "center",
     justifyContent: "center",
+  },
+  relative: {
+    position: "relative",
   },
 }));
 
@@ -35,6 +39,7 @@ const CircularProgress = props => {
   /* Props */
   const {
     className,
+    relative,
     ...rest
   } = props;
   
@@ -43,7 +48,14 @@ const CircularProgress = props => {
 
   /* Rendering */
   return (
-    <Container className={ classes.root }>
+    <Container
+      className={
+        clsx({
+          [classes.root]: true,
+          [classes.relative]: !!relative
+        })
+      }
+    >
       <MuiCircularProgress />
     </Container>
 );

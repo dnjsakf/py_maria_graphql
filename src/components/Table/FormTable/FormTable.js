@@ -16,7 +16,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import Paper from '@material-ui/core/Paper';
 
-import Button from '@material-ui/core/Button';
+import Switch from '@material-ui/core/Switch';
 import IconButton from '@material-ui/core/IconButton';
 import RemoveCircle from '@material-ui/icons/RemoveCircle';
 
@@ -37,6 +37,10 @@ const useStyles = makeStyles((theme)=>({
   },
   container: {
     maxHeight: 440,
+    overflowX: "scroll",
+  },
+  table: {
+    minWidth: 440,
   },
   input: {
     padding: theme.spacing(1)
@@ -50,7 +54,9 @@ const useStyles = makeStyles((theme)=>({
   btnCell: {
     padding: theme.spacing(1)
   },
-  th: { },
+  th: {
+    padding: theme.spacing(1),
+  },
   td: { }
 }));
 
@@ -68,13 +74,15 @@ const FormTableHead = props => {
   return (
     <TableHead>
       <TableRow>
-        <TableCell className={ classes.btnCell } padding="none"></TableCell>
+        <TableCell className={ classes.btnCell } padding="none" align="center"></TableCell>
         {columns.map(( column )=>{
           return (
             <TableCell
-              key={ "form-table-header-"+column.name }
+              key={ "table-form-head-col-"+column.name }
               className={ classes.th } 
               style={{ width: column.width }}
+              padding="none"
+              align="center"
             >
               { column.label }
             </TableCell>
@@ -82,6 +90,73 @@ const FormTableHead = props => {
         })}
       </TableRow>
     </TableHead>
+  );
+}
+
+
+const FormTableColumn = props => {
+  /* Props */
+  const {
+    classes,
+    type,
+    name,
+    align,
+    style,
+    value,
+    onChange,
+    onBlur,
+    ...rest
+  } = props;
+
+  /* Rendering: Switch */
+  if( type == "switch" ){
+    const checked = value == true || value == "Y";
+    return (
+      <TableCell className={ classes.td } padding="none" align="center">
+        <FormControl
+          fullWidth
+          align={ align||"left" }
+          style={ style }
+        >
+          <Switch
+            name={ name }
+            checked={ checked }
+            onChange={ onChange }
+            onBlur={ onBlur }
+          />
+        </FormControl>
+      </TableCell>
+    );
+  }
+
+  /* Rendering: Default */
+  return (
+    <TableCell className={ classes.td } padding="none" align="center">
+      <FormControl
+        align={ align||"left" }
+        style={ style }
+        fullWidth
+      >
+        <TextField 
+          fullWidth
+          type={ type||"text" }
+          name={ name }
+          value={ value }
+          onChange={ onChange }
+          onBlur={ onBlur }
+          variant="outlined"
+          InputProps={{
+            classes: {
+              input: clsx({
+                [classes.input]: true,
+                [classes.right]: align == "right",
+                [classes.center]: align == "center"
+              })
+            }
+          }}
+        />
+      </FormControl>
+    </TableCell>
   );
 }
 
@@ -103,6 +178,7 @@ const FormTableRow = props => {
     initialValues: (()=>{
       const obj = {}
       Object.keys(format).forEach(key=>{
+        
         obj[key] = data[key] || format[key];
       });
       return obj;
@@ -110,54 +186,41 @@ const FormTableRow = props => {
   });
 
   /* Handler: Save column. */
-  const handleBlur = useCallback((e)=>{
-    onSave( rowId, formik.values );
-  }, [ rowId, formik ]);
+  const handleBlur = async (e)=>{
+    const rowData = {
+      ...formik.values
+    }
+
+    columns
+      .filter(col=>col.type=="switch" && Array.isArray(col.switch) && col.switch.length == 2)
+      .forEach( col=>{
+        Object.assign(rowData, {
+          [col.name]: rowData[col.name] ? col.switch[0] : col.switch[1]
+        });
+      });
+    // onSave( rowId, rowData );
+  }
 
   /* Redering */
   return (
     <TableRow>
-      <TableCell className={ classes.btnCell } padding="none">
+      <TableCell className={ classes.btnCell } padding="none" align="center">
         <IconButton size="small" color="primary" onClick={ (e)=>onRemove(rowId) }>
           <RemoveCircle />
         </IconButton>
       </TableCell>
-      {columns.map(( column )=>{
-        const value = formik.values[column.name];
-        return (
-          <TableCell
-            key={ "form-table-body-"+column.name }
-            className={ classes.td }
-            padding="none"
-          >
-            <FormControl
-              align={ column.align||"left" }
-              style={{ width: column.width }}
-              fullWidth
-              required
-            >
-              <TextField 
-                fullWidth
-                type={ column.type||"text" }
-                name={ column.name }
-                value={ value }
-                onChange={ formik.handleChange }
-                onBlur={ handleBlur }
-                variant="outlined"
-                InputProps={{
-                  classes: {
-                    input: clsx({
-                      [classes.input]: true,
-                      [classes.right]: column.align == "right",
-                      [classes.center]: column.align == "center"
-                    })
-                  }
-                }}
-              />
-            </FormControl>
-          </TableCell>
-        );
-      })}
+      {columns.map(( column )=>(
+        <FormTableColumn
+          key={ "table-form-body-col-"+column.name }
+          classes={ classes }
+          type={ column.type||"text" }
+          name={ column.name }
+          align={ column.align }
+          value={ formik.values[column.name] }
+          onChange={ formik.handleChange }
+          onBlur={ handleBlur }
+        />
+      ))}
     </TableRow>
   );
 }
@@ -217,6 +280,7 @@ const FormTable = props =>{
           stickyHeader
           aria-label="sticky table"
           size="small"
+          className={ classes.table }
         > 
           <FormTableHead classes={ classes } columns={ columns }/>
           <TableBody>

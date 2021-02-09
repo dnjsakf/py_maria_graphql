@@ -6,7 +6,9 @@ export const SCHEDULE_QUERY = gql`
       id
       schdId
       schdType
+      schdTypeNm
       schdStatus
+      schdStatusNm
       execMsg
       date {
         edges {

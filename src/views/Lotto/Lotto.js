@@ -50,15 +50,15 @@ const Lotto = props =>{
         dataKey="drwtNo"
         checkbox={ false }
         columns={[
-          { id: "drwtNo", label: "회차", align: "center", minWidth: 30 },
-          { id: "drwtNo1", label: "번호1", align: "center", minWidth: 30 },
-          { id: "drwtNo2", label: "번호2", align: "center", minWidth: 30 },
-          { id: "drwtNo3", label: "번호3", align: "center", minWidth: 30 },
-          { id: "drwtNo4", label: "번호4", align: "center", minWidth: 30 },
-          { id: "drwtNo5", label: "번호5", align: "center", minWidth: 30 },
-          { id: "drwtNo6", label: "번호6", align: "center", minWidth: 30 },
-          { id: "drwtNoBnus", label: "보너스", align: "center", minWidth: 30 },
-          { id: "drwtNoDate", label: "추첨일", align: "center", type: "date", format: "YYYY-MM-DD", minWidth: 30 }
+          { name: "drwtNo", label: "회차", align: "center", minWidth: 30 },
+          { name: "drwtNo1", label: "번호1", align: "center", minWidth: 30 },
+          { name: "drwtNo2", label: "번호2", align: "center", minWidth: 30 },
+          { name: "drwtNo3", label: "번호3", align: "center", minWidth: 30 },
+          { name: "drwtNo4", label: "번호4", align: "center", minWidth: 30 },
+          { name: "drwtNo5", label: "번호5", align: "center", minWidth: 30 },
+          { name: "drwtNo6", label: "번호6", align: "center", minWidth: 30 },
+          { name: "drwtNoBnus", label: "보너스", align: "center", minWidth: 30 },
+          { name: "drwtNoDate", label: "추첨일", align: "center", type: "date", format: "YYYY-MM-DD", minWidth: 30 }
         ]}
         rows={ loading ? null : data.przwinList }
         loading={ loading }

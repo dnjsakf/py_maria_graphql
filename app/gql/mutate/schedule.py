@@ -71,16 +71,15 @@ class CreateSchedule(graphene.Mutation):
     MainType = ScheduleType
     SubType = None
 
-    main_data = input_to_dictionary(input)
-    if main_data.get("schd_id") is None or main_data.get("schd_id") == '':
-      main_data["schd_id"] = str(uuid4())
+    if input.get("schd_id") is None or input.get("schd_id") == '':
+      input["schd_id"] = str(uuid4())
     
-    schd_type = main_data.get("schd_type", None)
+    schd_type = input.get("schd_type", None)
     sub_data = dict(kwargs.get(schd_type, None))
-    sub_data["schd_id"] = main_data["schd_id"]
-    sub_data["mst_id"] = main_data["schd_id"]
+    sub_data["schd_id"] = input["schd_id"]
+    sub_data["mst_id"] = input["schd_id"]
 
-    model = MainType._meta.model(**main_data)
+    model = MainType._meta.model(**input)
     if schd_type == 'date':
       model.date.append(DateScheduleType._meta.model(**sub_data))
 

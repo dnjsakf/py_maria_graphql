@@ -132,14 +132,17 @@ def init_db():
   session.merge(mn2000)
   session.commit()
 
-  schd_type = MT_CODE_TYPE_MST(
-    code_type_id="schd_type",
-    code_type_nm="스케줄타입",
-    code_type_desc="스케줄타입",
-    use_yn="Y",
-    sort_order=1000,
-    reg_user="admin",
-    reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+
+  session.merge(
+    MT_CODE_TYPE_MST(
+      code_type_id="schd_type",
+      code_type_nm="스케줄타입",
+      code_type_desc="스케줄타입",
+      use_yn="Y",
+      sort_order=1000,
+      reg_user="admin",
+      reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+    )
   )
   session.merge(
     MT_CODE_MST(
@@ -196,7 +199,90 @@ def init_db():
   #   reg_user="admin",
   #   reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
   # ))
-  session.merge(schd_type)
   session.commit()
   
-  
+
+  session.merge(
+    MT_CODE_TYPE_MST(
+      code_type_id="schd_status",
+      code_type_nm="스케줄상태",
+      code_type_desc="스케줄상태",
+      use_yn="Y",
+      sort_order=2000,
+      reg_user="admin",
+      reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+    )
+  )
+  session.merge(
+    MT_CODE_MST(
+      code_type_id="schd_status",
+      code_id="0",
+      code_nm="등록",
+      code_desc="등록",
+      use_yn="Y",
+      sort_order=2100,
+      reg_user="admin",
+      reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+    )
+  )
+  session.merge(
+    MT_CODE_MST(
+      code_type_id="schd_status",
+      code_id="1",
+      code_nm="대기",
+      code_desc="대기",
+      use_yn="Y",
+      sort_order=2200,
+      reg_user="admin",
+      reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+    )
+  )
+  session.merge(
+    MT_CODE_MST(
+      code_type_id="schd_status",
+      code_id="2",
+      code_nm="진행중",
+      code_desc="진행중",
+      use_yn="Y",
+      sort_order=2300,
+      reg_user="admin",
+      reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+    )
+  )
+  session.merge(
+    MT_CODE_MST(
+      code_type_id="schd_status",
+      code_id="3",
+      code_nm="완료",
+      code_desc="완료",
+      use_yn="Y",
+      sort_order=2400,
+      reg_user="admin",
+      reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+    )
+  )
+  session.merge(
+    MT_CODE_MST(
+      code_type_id="schd_status",
+      code_id="4",
+      code_nm="중단",
+      code_desc="중단",
+      use_yn="Y",
+      sort_order=2500,
+      reg_user="admin",
+      reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+    )
+  )
+  session.merge(
+    MT_CODE_MST(
+      code_type_id="schd_status",
+      code_id="9",
+      code_nm="오류",
+      code_desc="오류",
+      use_yn="Y",
+      sort_order=2600,
+      reg_user="admin",
+      reg_dttm=datetime.now().strftime("%Y%m%d%H%M%S")
+    )
+  )
+  session.commit()

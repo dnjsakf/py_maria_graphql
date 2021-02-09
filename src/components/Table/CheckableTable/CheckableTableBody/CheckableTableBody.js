@@ -92,8 +92,8 @@ const CheckableTableBody = props => {
     return (
       <TableBody>
         <TableRow>
-          <TableCell colSpan={ columns.length + ( checkbox ? 0 : -1 )}>
-            <CircularProgress />
+          <TableCell colSpan={ columns.length + ( checkbox ? 1 : 0 )}>
+            <CircularProgress relative />
           </TableCell>
         </TableRow>
       </TableBody>
@@ -128,12 +128,12 @@ const CheckableTableBody = props => {
       {stableSort(rows, getComparator(order, orderBy))
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .map((row, idx)=>{
-        const labelId = `table-checkbox-${idx}`;
+        const labelId = `table-checkable-${idx}`;
 
         return (
           <TableRow 
             hover
-            key={ row.id }
+            key={ "table-checkable-body-row-"+row.id }
             role="checkbox"
             tabIndex={-1}
             onClick={(event) => onSelect(event, row[dataKey])}
@@ -141,9 +141,9 @@ const CheckableTableBody = props => {
             >
               {checkbox && (
                 <TableCell
-                key={"checkbox-"+dataKey}
-                align="center"
-                padding="checkbox"
+                  key={"table-checkable-body-col-checkbox-"+dataKey}
+                  align="center"
+                  padding="checkbox"
                 >
                 <Checkbox
                   onChange={ (event) => onSelect(event, row[dataKey]) }
@@ -153,39 +153,43 @@ const CheckableTableBody = props => {
                 </TableCell>
               )}
               { columns.map((column) => {
+                const COLUMN_KEY = "table-checkable-body-col-"+column.name;
+                
                 let Component = null;
-                let value = row[column.id];
+                let refValue = row[column.ref];
+                let value = row[column.name] || refValue;
 
                 if( column.type == "date" ){
                   value = moment(value).format(column.format||"YYYY-MM-DD");
                   Component = (
-                    <TableCell key={ column.id } align={ column.align }>
+                    <TableCell key={ COLUMN_KEY } align={ column.align }>
                       { value }
                     </TableCell>
                   );
                 } else if ( column.type == "number" ){
-                  value = Number(row[column.id]);
+                  value = Number(row[column.name]);
                   Component = (
-                    <TableCell key={ column.id } align={ column.align }>
+                    <TableCell key={ COLUMN_KEY } align={ column.align }>
                       { value }
                     </TableCell>
                   );
-                } else if ( column.type == "button" ){
+                } else if ( column.type == "status" ){
                   let status = "warning";
-                  if( value == 0 ){
+
+                  if( refValue == 0 ){
                     status = "default";
-                  } else if ( value == 1 ){
+                  } else if ( refValue == 1 ){
                     status = "secondary";
-                  } else if ( value == 2 ){
+                  } else if ( refValue == 2 ){
                     status = "primary";
-                  } else if ( value == 3 ){
+                  } else if ( refValue == 3 ){
                     status = "success";
-                  } else if ( value == 9 ){
+                  } else if ( refValue == 9 ){
                     status = "error";
                   }
 
                   Component = (
-                    <TableCell key={ column.id } align={ column.align }>
+                    <TableCell key={ COLUMN_KEY } align={ column.align }>
                       <StatusButton status={ status } onClick={ (e)=>{ e.stopPropagation(); column.onClick(e, row[dataKey]); } } size="small">
                         { value }
                       </StatusButton>
@@ -193,7 +197,7 @@ const CheckableTableBody = props => {
                   );
                 } else {
                   Component = (
-                    <TableCell key={ column.id } align={ column.align }>
+                    <TableCell key={ COLUMN_KEY } align={ column.align }>
                       { value }
                     </TableCell>
                   );
